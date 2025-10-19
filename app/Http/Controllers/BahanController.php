@@ -68,7 +68,7 @@ class BahanController extends Controller
             ]
         ];
 
-        return view('bahan-baku.index', compact('bahanBakuData'));
+        return view('admin.bahan-baku.index', compact('bahanBakuData'));
     }
 
     /**

@@ -58,7 +58,7 @@ class DashboardController extends Controller
             ]
         ];
 
-        return view('dashboard.index', compact('dashboardData'));
+        return view('admin.dashboard.index', compact('dashboardData'));
     }
 
     /**

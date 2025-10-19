@@ -75,7 +75,7 @@ class ManajemenUserController extends Controller
             'departments' => ['Management', 'Dapur', 'Kasir', 'Pelayanan', 'Gudang']
         ];
 
-        return view('manajemen-user.index', compact('userData'));
+        return view('admin.manajemen-user.index', compact('userData'));
     }
 
     /**

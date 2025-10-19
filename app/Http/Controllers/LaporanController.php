@@ -82,6 +82,6 @@ class LaporanController extends Controller
             ]
         ];
 
-        return view('laporan.index', compact('laporanData'));
+        return view('owner.laporan.index', compact('laporanData'));
     }
 }

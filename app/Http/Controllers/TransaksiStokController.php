@@ -83,7 +83,7 @@ class TransaksiStokController extends Controller
             ]
         ];
 
-        return view('transaksi-stok.index', compact('transaksiData'));
+        return view('admin.transaksi-stok.index', compact('transaksiData'));
     }
 
     /**
