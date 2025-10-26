@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,7 +16,7 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     {{-- Font Awesome via NPM (Recommended) --}}
-    @if(file_exists(public_path('build/fontawesome.css')))
+    @if (file_exists(public_path('build/fontawesome.css')))
         <link rel="stylesheet" href="{{ asset('build/fontawesome.css') }}">
     @else
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -24,6 +25,7 @@
     {{-- Additional Head Scripts/Styles --}}
     @stack('head-scripts')
 </head>
+
 <body class="bg-gray-50 antialiased">
     <div class="flex min-h-screen">
         <!-- Sidebar -->
@@ -36,6 +38,9 @@
             <!-- Main Content -->
             <main class="flex-1 container mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 @yield('content')
+
+                <!-- Toast Notification Component -->
+
             </main>
 
             <!-- Footer -->
@@ -51,34 +56,79 @@
         </div>
     </div>
 
+    {{-- Toast component (include here, near end of body) --}}
+    @include('components.toast')
+
+    {{-- Trigger toast from session --}}
+    @if (session('toast'))
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const payload = @json(session('toast'));
+                // trigger Alpine toast via custom window event
+                window.dispatchEvent(new CustomEvent('toast', {
+                    detail: payload
+                }));
+            });
+        </script>
+    @endif
+
     {{-- Sidebar Toggle Script --}}
     @push('head-scripts')
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const sidebarToggle = document.getElementById('sidebarToggle');
-            const sidebar = document.getElementById('sidebar');
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                const sidebarToggle = document.getElementById('sidebarToggle');
+                const sidebar = document.getElementById('sidebar');
 
-            if (sidebarToggle && sidebar) {
-                sidebarToggle.addEventListener('click', () => {
-                    sidebar.classList.toggle('-translate-x-full');
-                });
+                if (sidebarToggle && sidebar) {
+                    sidebarToggle.addEventListener('click', () => {
+                        sidebar.classList.toggle('-translate-x-full');
+                    });
 
-                // Close sidebar when clicking outside on mobile
-                document.addEventListener('click', (event) => {
-                    const isLargeScreen = window.innerWidth >= 1024;
-                    const isClickInsideSidebar = sidebar.contains(event.target);
-                    const isClickOnToggle = sidebarToggle.contains(event.target);
+                    // Close sidebar when clicking outside on mobile
+                    document.addEventListener('click', (event) => {
+                        const isLargeScreen = window.innerWidth >= 1024;
+                        const isClickInsideSidebar = sidebar.contains(event.target);
+                        const isClickOnToggle = sidebarToggle.contains(event.target);
 
-                    if (!isLargeScreen && !isClickInsideSidebar && !isClickOnToggle) {
-                        sidebar.classList.add('-translate-x-full');
-                    }
-                });
-            }
-        });
-    </script>
+                        if (!isLargeScreen && !isClickInsideSidebar && !isClickOnToggle) {
+                            sidebar.classList.add('-translate-x-full');
+                        }
+                    });
+                }
+            });
+        </script>
     @endpush
 
+    <!-- Alpine.js Toast Logic -->
+    <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('toast', () => ({
+                isVisible: false,
+                type: 'success',
+                title: '',
+                message: '',
+                duration: 4000,
+
+                show(notification) {
+                    this.type = notification.type;
+                    this.title = notification.title;
+                    this.message = notification.message;
+                    this.duration = notification.duration || 4000;
+                    this.isVisible = true;
+
+                    setTimeout(() => {
+                        this.hide();
+                    }, this.duration);
+                },
+
+                hide() {
+                    this.isVisible = false;
+                }
+            }));
+        });
+    </script>
     {{-- Additional Body Scripts --}}
     @stack('body-scripts')
 </body>
+
 </html>

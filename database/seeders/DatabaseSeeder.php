@@ -15,6 +15,9 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             RolePermissionSeeder::class,
+            CategorySeeder::class,
+            BahanSeeder::class,
+            // Seeder lain jika ada
         ]);
     }
 }
