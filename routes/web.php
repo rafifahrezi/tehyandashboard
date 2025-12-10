@@ -12,7 +12,7 @@ Route::get('/', function () {
     return view('auth.login');
 });
 
-Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
+Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/admin-panel', [DashboardController::class, 'index'])->name('admin.panel');
     Route::get('/admin-manajemen-bahan', [BahanController::class, 'index'])->name('manajemen.bahan-admin');
     Route::post('/admin-manajemen-bahan', [BahanController::class, 'store'])->name('manajemen.bahan-admin.store');
