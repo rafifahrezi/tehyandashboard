@@ -35,7 +35,7 @@ return new class extends Migration
             $table->string('supplier');
 
             // Stok
-            $table->decimal('stok', 10, 2)->default(0);
+            $table->decimal('stok_sekarang', 10, 2)->default(0);
             $table->decimal('min_stok', 10, 2)->default(0);
 
             $table->date('tanggal_masuk')->nullable();

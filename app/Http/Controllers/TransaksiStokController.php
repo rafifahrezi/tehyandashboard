@@ -2,88 +2,118 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Bahan;
+use App\Models\StockMove;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use App\Http\Requests\StockMoveRequest;
+use Illuminate\Support\Facades\Log;
 
 class TransaksiStokController extends Controller
 {
+
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $transaksiData = [
-            'pageTitle' => 'Transaksi Stok',
-            'pageDescription' => 'Catat keluar masuk stok bahan baku',
-            'transactions' => [
-                [
-                    'id' => 1,
-                    'tanggal' => '16 Okt 2024 17:25',
-                    'bahan' => 'Beras Bali',
-                    'jenis' => 'Masuk',
-                    'jumlah' => '+12 pack',
-                    'stok_sebelum' => '10 pack',
-                    'stok_sesudah' => '22 pack',
-                    'pegawai' => 'rafffahrez4',
-                    'keterangan' => 'Nambah lagi nih Ref: av-1212',
-                    'jenis_color' => 'green'
-                ],
-                [
-                    'id' => 2,
-                    'tanggal' => '15 Okt 2024 14:30',
-                    'bahan' => 'Gula Pasir',
-                    'jenis' => 'Keluar',
-                    'jumlah' => '-5 kg',
-                    'stok_sebelum' => '20 kg',
-                    'stok_sesudah' => '15 kg',
-                    'pegawai' => 'rafffahrez4',
-                    'keterangan' => 'Untuk produksi harian',
-                    'jenis_color' => 'red'
-                ],
-                [
-                    'id' => 3,
-                    'tanggal' => '15 Okt 2024 10:15',
-                    'bahan' => 'Minyak Goreng',
-                    'jenis' => 'Masuk',
-                    'jumlah' => '+10 liter',
-                    'stok_sebelum' => '8 liter',
-                    'stok_sesudah' => '18 liter',
-                    'pegawai' => 'staff1',
-                    'keterangan' => 'Restock dari supplier',
-                    'jenis_color' => 'green'
-                ],
-                [
-                    'id' => 4,
-                    'tanggal' => '14 Okt 2024 16:45',
-                    'bahan' => 'Garam Halus',
-                    'jenis' => 'Keluar',
-                    'jumlah' => '-2 kg',
-                    'stok_sebelum' => '7 kg',
-                    'stok_sesudah' => '5 kg',
-                    'pegawai' => 'staff2',
-                    'keterangan' => 'Pemakaian dapur',
-                    'jenis_color' => 'red'
-                ],
-                [
-                    'id' => 5,
-                    'tanggal' => '14 Okt 2024 09:20',
-                    'bahan' => 'Beras Bali',
-                    'jenis' => 'Masuk',
-                    'jumlah' => '+15 pack',
-                    'stok_sebelum' => '5 pack',
-                    'stok_sesudah' => '20 pack',
-                    'pegawai' => 'rafffahrez4',
-                    'keterangan' => 'Stock awal bulan',
-                    'jenis_color' => 'green'
-                ]
-            ],
-            'filters' => [
-                'jenis' => ['Semua Jenis', 'Masuk', 'Keluar'],
-                'bahan' => ['Semua Bahan', 'Beras Bali', 'Gula Pasir', 'Minyak Goreng', 'Garam Halus'],
-                'periode' => ['Hari Ini', 'Minggu Ini', 'Bulan Ini', '3 Bulan Terakhir', 'Custom']
-            ]
-        ];
+        $query = StockMove::with(['bahan'])->latest();
 
-        return view('admin.transaksi-stok.index', compact('transaksiData'));
+        if ($request->filled('bahan_id')) {
+            $query->where('bahan_id', $request->bahan_id);
+        }
+
+        if ($request->filled('move_type')) {
+            $query->where('move_type', $request->move_type);
+        }
+
+        if ($request->filled('periode')) {
+            $range = $this->periodDateRange($request->periode);
+            if ($range) {
+                $query->whereBetween('created_at', [$range[0], $range[1]]);
+            }
+        }
+        // Hitung aktivitas hari ini
+        $aktivitasHariIni = StockMove::whereBetween('created_at', $this->periodDateRange('daily'))
+            ->count();
+
+        $stockMoves = $query->paginate(10)->withQueryString();
+
+        $transactions = $stockMoves->map(function ($item) {
+            return [
+                'tanggal'        => $item->created_at->format('d M Y H:i'),
+                'bahan'          => $item->bahan->nama_bahan,
+                'jenis'          => $item->move_type === 'in' ? 'Masuk' : 'Keluar',
+                'jenis_color'    => $item->move_type === 'in' ? 'green' : 'red',
+                'jumlah'         => $item->qty,
+                'stok_sebelum'   => $item->stok_sebelum,
+                'stok_sesudah'   => $item->stok_sesudah,
+                'pegawai'        => 'Admin',
+                'keterangan'     => $item->reference_type ?? '-',
+            ];
+        });
+
+        return view('admin.transaksi-stok.index', [
+            'pageTitle'       => 'Transaksi Stok',
+            'pageDescription' => 'Catat keluar masuk stok bahan baku',
+            'filters'         => [
+                'jenis' => [
+                    'in' => 'Masuk',
+                    'out' => 'Keluar',
+                ],
+                'bahan'   => Bahan::pluck('nama_bahan', 'id'),
+                'periode' => ['Harian', 'Mingguan', 'Bulanan'],
+            ],
+            'transactions'    => $transactions,
+            'pagination'      => $stockMoves,
+            'aktivitasHariIni' => $aktivitasHariIni,
+        ]);
+    }
+
+    /* =======================================================
+     * LOGIKA PERHITUNGAN STOK – SINGLE SOURCE OF TRUTH
+     * ======================================================= */
+    private function calculateNewStock($moveType, $qty, Bahan $bahan)
+    {
+        $stokSebelum = $bahan->stok_sekarang;
+
+        if ($moveType === 'in') {
+            $stokSesudah = $stokSebelum + $qty;
+        } else {
+            if ($stokSebelum < $qty) {
+                throw new \Exception("Stok tidak cukup. Stok tersedia: $stokSebelum");
+            }
+            $stokSesudah = $stokSebelum - $qty;
+        }
+
+        return [$stokSebelum, $stokSesudah];
+    }
+
+    // Calculate Filter Periode
+    private function periodDateRange($periode)
+    {
+        switch ($periode) {
+            case 'daily':
+                return [
+                    now()->startOfDay(),
+                    now()->endOfDay()
+                ];
+
+            case 'weekly':
+                return [
+                    now()->startOfWeek(), // Senin
+                    now()->endOfWeek()    // Minggu
+                ];
+
+            case 'monthly':
+                return [
+                    now()->startOfMonth(),
+                    now()->endOfMonth()
+                ];
+
+            default:
+                return null;
+        }
     }
 
     /**
@@ -91,16 +121,82 @@ class TransaksiStokController extends Controller
      */
     public function create()
     {
-        //
+        $bahans = Bahan::where('is_active', true)
+            ->orderBy('nama_bahan')
+            ->get();
+
+        return view('admin.transaksi-stok.create', [
+            'pageTitle' => 'Buat Transaksi Baru',
+            'pageDescription' => 'Tambahkan transaksi masuk/keluar stok bahan baku',
+            'bahans' => $bahans,
+        ]);
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StockMoveRequest $request)
     {
-        //
+        try {
+            // Jalankan transaksi database
+            $stockMove = DB::transaction(function () use ($request) {
+                // Ambil bahan dengan lock untuk mencegah race condition
+                $bahan = Bahan::lockForUpdate()->findOrFail($request->bahan_id);
+
+                // Validasi stok keluar
+                if ($request->move_type === 'out' && $bahan->stok_sekarang < $request->qty) {
+                    throw new \Exception('Stok tidak mencukupi. Stok tersedia: ' . $bahan->stok_sekarang);
+                }
+
+                // Hitung stok baru
+                $stokSebelum = $bahan->stok_sekarang;
+                $stokSesudah = $request->move_type === 'in'
+                    ? $stokSebelum + $request->qty
+                    : $stokSebelum - $request->qty;
+
+                // Simpan transaksi
+                $stockMove = StockMove::create([
+                    'bahan_id'       => $bahan->id,
+                    'move_type'      => $request->move_type,
+                    'qty'            => $request->qty,
+                    'stok_sebelum'   => $stokSebelum,
+                    'stok_sesudah'   => $stokSesudah,
+                    'reference_type' => $request->reference_type,
+                    'reference_id'   => $request->reference_id,
+                ]);
+
+                // Update stok bahan
+                $bahan->update(['stok_sekarang' => $stokSesudah]);
+
+                return $stockMove;
+            });
+
+            // Redirect untuk tampilan web
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'data'    => $stockMove,
+                    'message' => 'Transaksi berhasil disimpan!',
+                ], 201);
+            }
+
+            return redirect()->route('transaksi.stok-admin.store')
+                ->with('success', 'Transaksi berhasil disimpan!');
+        } catch (\Exception $e) {
+            // Handle error
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $e->getMessage(),
+                ], 500);
+            }
+
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Gagal menyimpan transaksi: ' . $e->getMessage());
+        }
     }
+
 
     /**
      * Display the specified resource.
@@ -121,16 +217,108 @@ class TransaksiStokController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(StockMoveRequest $request, $id)
     {
-        //
+        
+        try {
+            return DB::transaction(function () use ($request, $id) {
+                // Lock record untuk mencegah race condition
+                $stockMove = StockMove::lockForUpdate()->findOrFail($id);
+                $bahan = Bahan::lockForUpdate()->findOrFail($stockMove->bahan_id);
+
+                // 1. Rollback stok lama (kembalikan ke nilai sebelum transaksi)
+                $this->rollbackStock($stockMove, $bahan);
+
+                // 2. Validasi stok untuk transaksi baru
+                $this->validateStock($request->move_type, $request->qty, $bahan);
+
+                // 3. Hitung stok baru
+                [$stokSebelum, $stokSesudah] = $this->calculateNewStock(
+                    $request->move_type,
+                    $request->qty,
+                    $bahan->stok_sekarang
+                );
+
+                // 4. Update transaksi stok
+                $stockMove->update([
+                    'move_type'      => $request->move_type,
+                    'qty'            => $request->qty,
+                    'stok_sebelum'   => $stokSebelum,
+                    'stok_sesudah'   => $stokSesudah,
+                    'reference_type' => $request->reference_type,
+                    'reference_id'   => $request->reference_id,
+                ]);
+
+                // 5. Update stok bahan
+                $bahan->update([
+                    'stok_sekarang' => $stokSesudah
+                ]);
+
+
+                return response()->json([
+                    'success' => true,
+                    'data'    => $stockMove,
+                    'message' => 'Transaksi stok berhasil diupdate'
+                ]);
+            });
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal mengupdate transaksi: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+    /**
+     * Rollback stok ke nilai sebelum transaksi
+     */
+    protected function rollbackStock(StockMove $stockMove, Bahan $bahan): void
+    {
+        $bahan->stok_sekarang = $stockMove->move_type === 'in'
+            ? $bahan->stok_sekarang - $stockMove->qty
+            : $bahan->stok_sekarang + $stockMove->qty;
+
+        $bahan->save();
+    }
+
+    /**
+     * Validasi ketersediaan stok
+     */
+    protected function validateStock(string $moveType, float $qty, Bahan $bahan): void
+    {
+        if ($moveType === 'out' && $bahan->stok_sekarang < $qty) {
+            throw new \Exception('Stok tidak mencukupi. Stok tersedia: ' . $bahan->stok_sekarang);
+        }
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy($id)
     {
-        //
+        try {
+            return DB::transaction(function () use ($id) {
+                $stockMove = StockMove::findOrFail($id);
+                $bahan = $stockMove->bahan;
+
+                // Kembalikan stok
+                $bahan->update([
+                    'stok_sekarang' => $stockMove->move_type === 'in'
+                        ? $bahan->stok_sekarang - $stockMove->qty
+                        : $bahan->stok_sekarang + $stockMove->qty
+                ]);
+
+                $stockMove->delete();
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Transaksi stok berhasil dihapus'
+                ]);
+            });
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menghapus transaksi: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

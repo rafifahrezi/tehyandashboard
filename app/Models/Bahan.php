@@ -36,7 +36,7 @@ class Bahan extends Model
         'satuan',
         'harga',
         'supplier',
-        'stok',
+        'stok_sekarang',
         'min_stok',
         'tanggal_masuk',
         'tanggal_kadaluarsa',
@@ -46,7 +46,7 @@ class Bahan extends Model
     // Casting untuk tipe data
     protected $casts = [
         'harga' => 'decimal:2',
-        'stok' => 'decimal:2',
+        'stok_sekarang' => 'decimal:2',
         'min_stok' => 'decimal:2'
     ];
 
@@ -54,6 +54,12 @@ class Bahan extends Model
     public function category()
     {
         return $this->belongsTo(Category::class, 'category_id', 'id');
+    }
+
+    // Relasi ke stock moves (satu bahan memiliki banyak transaksi stok)
+    public function stockMoves()
+    {
+        return $this->hasMany(StockMove::class);
     }
 
     // Scope untuk filter status
@@ -65,21 +71,24 @@ class Bahan extends Model
     // Method untuk mengecek status stok
     public function checkStokStatus()
     {
-        if ($this->stok <= 0) {
+        if ($this->stok_sekarang <= 0) {
             return 'habis';
-        } elseif ($this->stok <= $this->min_stok) {
+        } elseif ($this->stok_sekarang <= $this->min_stok) {
             return 'kritis';
-        } elseif ($this->stok <= ($this->min_stok * 1.5)) {
+        } elseif ($this->stok_sekarang <= ($this->min_stok * 1.5)) {
             return 'warning';
         }
-
         return 'aman';
     }
 
-    // Mutator untuk update status otomatis
-    public function updateStokStatus()
+    // Update stok bahan
+    public function updateStock(float $qty, string $moveType): void
     {
-        $this->is_active = $this->checkStokStatus();
+        if ($moveType === 'in') {
+            $this->stok_sekarang += $qty;
+        } else {
+            $this->stok_sekarang -= $qty;
+        }
         $this->save();
     }
 }

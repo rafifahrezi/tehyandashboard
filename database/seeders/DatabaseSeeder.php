@@ -17,6 +17,7 @@ class DatabaseSeeder extends Seeder
             RolePermissionSeeder::class,
             CategorySeeder::class,
             BahanSeeder::class,
+            StockMoveSeeder::class,
             // Seeder lain jika ada
         ]);
     }

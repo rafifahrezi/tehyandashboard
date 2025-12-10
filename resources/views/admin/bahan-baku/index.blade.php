@@ -74,7 +74,7 @@
                             <div class="flex justify-between items-center mb-2">
                                 <span class="text-gray-600 font-medium">Stok</span>
                                 <span class="font-semibold text-gray-900"
-                                    x-text="`${bahan.stok} / ${bahan.min_stok} ${bahan.satuan}`"></span>
+                                    x-text="`${bahan.stok_sekarang} / ${bahan.min_stok} ${bahan.satuan}`"></span>
                             </div>
                             <!-- Progress Bar -->
                             <div class="w-full bg-gray-200 rounded-full h-2">
@@ -84,7 +84,7 @@
                                     'bg-red-500': bahan.status === 'kritis'
                                 }"
                                     class="h-2 rounded-full transition-all duration-300"
-                                    :style="`width: ${Math.min((bahan.stok / bahan.min_stok) * 100, 100)}%`"></div>
+                                    :style="`width: ${Math.min((bahan.stok_sekarang / bahan.min_stok) * 100, 100)}%`"></div>
                             </div>
                         </div>
 
@@ -174,7 +174,7 @@
                     nama_bahan: '',
                     category_id: '',
                     satuan: '',
-                    stok: 0,
+                    stok_sekarang: 0,
                     min_stok: 0,
                     harga: 0,
                     supplier: '',
@@ -205,7 +205,7 @@
 
 
                 calculateStatus(bahan) {
-                    const stokPercentage = (bahan.stok / bahan.min_stok) * 100;
+                    const stokPercentage = (bahan.stok_sekarang / bahan.min_stok) * 100;
                     if (stokPercentage >= 100) return 'aman';
                     if (stokPercentage >= 50) return 'warning';
                     return 'kritis';
@@ -289,7 +289,7 @@
                         nama_bahan: '',
                         category_id: '',
                         satuan: '',
-                        stok: 0,
+                        stok_sekarang: 0,
                         min_stok: 0,
                         harga: 0,
                         supplier: '',

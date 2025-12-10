@@ -12,9 +12,8 @@ Route::get('/', function () {
     return view('auth.login');
 });
 
-Route::middleware(['auth', 'role:admin'])->group(function () {
+Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::get('/admin-panel', [DashboardController::class, 'index'])->name('admin.panel');
-
     Route::get('/admin-manajemen-bahan', [BahanController::class, 'index'])->name('manajemen.bahan-admin');
     Route::post('/admin-manajemen-bahan', [BahanController::class, 'store'])->name('manajemen.bahan-admin.store');
     Route::get('/admin-manajemen-bahan/create', [BahanController::class, 'create'])->name('manajemen.bahan-admin.create');
@@ -23,6 +22,9 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::delete('/admin-manajemen-bahan/{id}', [BahanController::class, 'destroy'])->name('manajemen.bahan-admin.destroy');
 
     Route::get('/admin-transaksi-stok', [TransaksiStokController::class, 'index'])->name('transaksi.stok-admin');
+    Route::post('/admin-transaksi-stok', [TransaksiStokController::class, 'store'])->name('transaksi.stok-admin.store');
+    Route::get('/admin-transaksi-stok/create', [TransaksiStokController::class, 'create'])->name('transaksi.stok-admin.create');
+
     Route::get('/admin-manajemen-user', [ManajemenUserController::class, 'index'])->name('manajemen.user-admin');
 });
 

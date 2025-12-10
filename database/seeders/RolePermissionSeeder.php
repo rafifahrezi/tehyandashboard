@@ -7,6 +7,7 @@ use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use Spatie\Permission\Models\Permission;
 
 class RolePermissionSeeder extends Seeder
 {
@@ -15,10 +16,11 @@ class RolePermissionSeeder extends Seeder
      */
     public function run(): void
     {
-        // Buat role 'admin' jika belum ada
+        // Create roles
         $adminRole = Role::firstOrCreate(['name' => 'admin']);
+        $ownerRole = Role::firstOrCreate(['name' => 'owner']);
 
-        // Buat akun admin pertama
+        // Create users
         $admin = User::firstOrCreate(
             [
                 'name' => 'Admin User',
@@ -26,14 +28,8 @@ class RolePermissionSeeder extends Seeder
                 'password' => Hash::make('admin123'),
             ]
         );
-
-        // Berikan role 'admin' ke user admin
         $admin->assignRole($adminRole);
 
-        // Buat role 'owner' jika belum ada
-        $ownerRole = Role::firstOrCreate(['name' => 'owner']);
-
-        // Buat akun owner pertama
         $owner = User::firstOrCreate(
             [
                 'name' => 'Owner User',
@@ -41,8 +37,22 @@ class RolePermissionSeeder extends Seeder
                 'password' => Hash::make('owner123'),
             ]
         );
-
-        // Berikan role 'owner' ke user admin
         $owner->assignRole($ownerRole);
     }
+
+    // add to permission after l:21
+/*         $permissions = [
+            'create stock moves',
+            'view stock moves',
+            'edit stock moves',
+            'delete stock moves',
+        ];
+
+        foreach ($permissions as $permission) {
+            Permission::firstOrCreate(['name' => $permission]);
+        }
+
+        // Assign permissions to roles
+        $adminRole->givePermissionTo($permissions);
+ */
 }
