@@ -37,11 +37,12 @@
             </div>
 
             <!-- Peringatan Stok -->
+            @if ($lowStockCount > 0)
             <div class="bg-yellow-50 rounded-lg p-4">
                 <div class="flex items-center justify-between">
                     <div>
                         <p class="text-sm font-medium text-yellow-900">Peringatan Stok</p>
-                        <p class="text-2xl font-bold text-yellow-900">{{ $dashboardData['stock']['warnings'] }}</p>
+                        <p class="text-2xl font-bold text-yellow-900">{{ $lowStockCount }}</p>
                         <p class="text-xs text-yellow-700">{{ $dashboardData['stock']['status'] }}</p>
                     </div>
                     <div class="bg-yellow-100 p-3 rounded-full">
@@ -49,6 +50,7 @@
                     </div>
                 </div>
             </div>
+            @endif
 
             <!-- Nilai Inventori -->
             <div class="bg-purple-50 rounded-lg p-4">

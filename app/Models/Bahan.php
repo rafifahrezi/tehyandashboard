@@ -91,4 +91,10 @@ class Bahan extends Model
         }
         $this->save();
     }
+
+    // Tambahkan method static untuk memudahkan akses dari view/controller
+    public static function getSatuanOptions(): array
+    {
+        return self::SATUAN_OPTIONS;
+    }
 }

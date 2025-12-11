@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Bahan;
 use Illuminate\Http\Request;
 
 class DashboardController extends Controller
@@ -58,7 +59,11 @@ class DashboardController extends Controller
             ]
         ];
 
-        return view('admin.dashboard.index', compact('dashboardData'));
+        // Define the minimum stock threshold
+        $minimumStockThreshold = 5; 
+        $lowStockCount = Bahan::where('stok_sekarang', '<=', $minimumStockThreshold)->count();
+
+        return view('admin.dashboard.index', compact('dashboardData', 'lowStockCount'));
     }
 
     /**

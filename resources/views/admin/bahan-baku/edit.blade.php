@@ -10,7 +10,7 @@
             </nav>
         </div>
 
-        {{-- Tampilkan notifikasi  by Alphone.js--}}
+        {{-- Tampilkan notifikasi  by Alphone.js --}}
         @if (session('notification'))
             <script>
                 document.addEventListener('DOMContentLoaded', function() {
@@ -71,8 +71,8 @@
                             <label class="block text-sm font-medium text-gray-700 mb-2">
                                 Stok Awal <span class="text-red-500">*</span>
                             </label>
-                            <input name="stok" type="number" value="{{ old('stok', $bahan->stok) }}" step="0.01"
-                                placeholder="0" required min="0"
+                            <input name="stok_sekarang" type="number" value="{{ old('stok_sekarang', $bahan->stok_sekarang) }}" step="0.01"
+                                placeholder="0" required min="0" disabled
                                 class="w-full rounded-lg border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200">
                         </div>
                         <div>
@@ -129,9 +129,14 @@
                         <label class="block text-sm font-medium text-gray-700 mb-2">
                             Satuan <span class="text-red-500">*</span>
                         </label>
-                        <input name="satuan" value="{{ old('satuan', $bahan->satuan) }}" placeholder="Masukkan satuan"
-                            required
-                            class="w-full rounded-lg border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200">
+                        <select name="satuan" required class="...">
+                            @foreach ($satuanOptions as $value => $label)
+                                <option value="{{ $value }}"
+                                    {{ old('satuan', $bahan->satuan) == $value ? 'selected' : '' }}>
+                                    {{ $label }}
+                                </option>
+                            @endforeach
+                        </select>
                     </div>
 
                     <div>

@@ -84,7 +84,7 @@
     ];
 
     // Mock data for low stock warning
-    $lowStockCount = 3;
+
 @endphp
 
 <!-- Sidebar -->
@@ -146,9 +146,7 @@
                     <div class="flex items-start gap-3">
                         <i class="fas fa-bell w-5 h-5 text-amber-600 mt-0.5"></i>
                         <div>
-                            <p class="text-sm font-semibold text-amber-900">
-                                Peringatan Stok
-                            </p>
+                            <p class="text-sm font-semibold text-amber-900">Peringatan Stok</p>
                             <p class="text-xs text-amber-700 mt-1">
                                 {{ $lowStockCount }} bahan mencapai stok minimum
                             </p>
@@ -156,6 +154,7 @@
                     </div>
                 </div>
             @endif
+
         </div>
 
         <!-- Sidebar Footer -->

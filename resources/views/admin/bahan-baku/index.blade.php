@@ -207,7 +207,7 @@
                 calculateStatus(bahan) {
                     const stokPercentage = (bahan.stok_sekarang / bahan.min_stok) * 100;
                     if (stokPercentage >= 100) return 'aman';
-                    if (stokPercentage >= 50) return 'warning';
+                    if (stokPercentage >= 50) return 'warning'; 
                     return 'kritis';
                 },
 
@@ -409,7 +409,6 @@
 
                     } catch (error) {
                         console.error('Error menghapus bahan:', error);
-
                         // Show snackbar notification from backend if available
                         if (error.response?.data?.notification) {
                             this.showSnackbar(error.response.data.notification);
