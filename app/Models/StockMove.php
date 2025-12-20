@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -19,6 +20,10 @@ class StockMove extends Model
         'reference_id',
         'stok_sebelum', // yg diamabil dari foregn nya bahans
         'stok_sesudah'
+    ];
+
+    protected $casts = [
+        'created_at' => 'datetime',
     ];
 
     // Relasi ke bahan
@@ -69,24 +74,23 @@ class StockMove extends Model
      */
     protected static function booted()
     {
-        static::creating(function ($stockMove) {
-            $bahan = $stockMove->bahan;
-            $stockMove->stok_sebelum = $bahan->stok_sekarang;
-            $stockMove->stok_sesudah = ($stockMove->move_type === 'in')
-                ? $bahan->stok_sekarang + $stockMove->qty
-                : $bahan->stok_sekarang - $stockMove->qty;
+        static::created(function ($move) {
+            $move->bahan->applyStockMove($move->move_type, $move->qty);
         });
 
-        static::created(function ($stockMove) {
-            $stockMove->bahan->updateStock($stockMove->qty, $stockMove->move_type);
+        static::updated(function ($move) {
+            if ($move->wasChanged(['qty', 'move_type'])) {
+                $move->bahan->rollbackStockMove(
+                    $move->getOriginal('move_type'),
+                    $move->getOriginal('qty')
+                );
+
+                $move->bahan->applyStockMove($move->move_type, $move->qty);
+            }
         });
 
-        static::deleting(function ($stockMove) {
-            // Kembalikan stok saat menghapus transaksi
-            $stockMove->bahan->updateStock(
-                $stockMove->move_type === 'in' ? -$stockMove->qty : $stockMove->qty,
-                $stockMove->move_type
-            );
+        static::deleted(function ($move) {
+            $move->bahan->rollbackStockMove($move->move_type, $move->qty);
         });
     }
 }

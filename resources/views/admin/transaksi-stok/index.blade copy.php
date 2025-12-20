@@ -1,3 +1,170 @@
+// card dashboard
+<!-- Stok Masuk Hari Ini -->
+<div class="group bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl shadow-lg border border-blue-100 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 relative overflow-hidden">
+    <!-- Animated Background -->
+    <div class="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-indigo-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+
+    <!-- Content -->
+    <div class="relative p-5">
+        <div class="flex items-start justify-between">
+            <!-- Left Content -->
+            <div class="flex-1 min-w-0">
+                <!-- Label with icon -->
+                <div class="flex items-center space-x-2 mb-3">
+                    <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center shadow-sm">
+                        <i class="fas fa-arrow-down text-white text-sm"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm font-semibold text-blue-900 uppercase tracking-wide">Stok Masuk</p>
+                        <p class="text-xs text-blue-600/80">Hari Ini</p>
+                    </div>
+                </div>
+
+                <!-- Count -->
+                <div class="flex items-baseline space-x-2 mb-1">
+                    <p class="text-3xl font-bold text-blue-900">
+                        {{ (int)$dashboardData['transactions']['todayIn']['count'] }}
+                    </p>
+                    @if((int)$dashboardData['transactions']['todayIn']['count'] > 0)
+                    <span class="text-xs font-medium px-2 py-0.5 bg-blue-100 text-blue-800 rounded-full">
+                        <i class="fas fa-arrow-up mr-0.5 text-xs"></i>
+                        {{ round(($dashboardData['transactions']['todayIn']['count'] / max(1, $dashboardData['transactions']['todayIn']['count'] + $dashboardData['transactions']['todayOut']['count'])) * 100) }}%
+                    </span>
+                    @endif
+                </div>
+
+                <!-- Transactions -->
+                <div class="flex items-center space-x-3">
+                    <div class="flex items-center text-blue-700">
+                        <i class="fas fa-exchange-alt text-xs mr-1.5"></i>
+                        <span class="text-sm font-medium">
+                            {{ (int)$dashboardData['transactions']['todayIn']['transactions'] }} transaksi
+                        </span>
+                    </div>
+                    @if((int)$dashboardData['transactions']['todayIn']['count'] > 0)
+                    <div class="hidden lg:flex items-center text-blue-600/70 text-xs">
+                        <i class="fas fa-clock mr-1"></i>
+                        Rata-rata: {{ round($dashboardData['transactions']['todayIn']['count'] / max(1, $dashboardData['transactions']['todayIn']['transactions']), 1) }}/transaksi
+                    </div>
+                    @endif
+                </div>
+            </div>
+
+            <!-- Right Icon -->
+            <div class="relative">
+                <div class="w-14 h-14 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg transform group-hover:scale-110 transition-transform duration-300">
+                    <i class="fas fa-box-open text-white text-lg"></i>
+                </div>
+                <!-- Animated dots for live indicator -->
+                <div class="absolute -top-1 -right-1">
+                    <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Progress Bar (visible on hover) -->
+        @if((int)$dashboardData['transactions']['todayIn']['count'] > 0)
+        <div class="mt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <div class="flex justify-between text-xs text-blue-700/70 mb-1">
+                <span>Progress Harian</span>
+                <span>{{ round(($dashboardData['transactions']['todayIn']['count'] / ($dashboardData['transactions']['todayIn']['count'] + 50)) * 100) }}%</span>
+            </div>
+            <div class="w-full h-2 bg-blue-200 rounded-full overflow-hidden">
+                <div class="h-full bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full transition-all duration-500"
+                    style="width: {{ min(100, ($dashboardData['transactions']['todayIn']['count'] / ($dashboardData['transactions']['todayIn']['count'] + 50)) * 100) }}%"></div>
+            </div>
+        </div>
+        @endif
+    </div>
+
+    <!-- Corner Decoration -->
+    <div class="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-blue-500/10 to-transparent rounded-bl-2xl"></div>
+</div>
+
+<!-- Stok Keluar Hari Ini -->
+<div class="group bg-gradient-to-br from-emerald-50 to-green-50 rounded-2xl shadow-lg border border-emerald-100 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 relative overflow-hidden">
+    <!-- Animated Background -->
+    <div class="absolute inset-0 bg-gradient-to-r from-emerald-500/5 to-green-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+
+    <!-- Content -->
+    <div class="relative p-5">
+        <div class="flex items-start justify-between">
+            <!-- Left Content -->
+            <div class="flex-1 min-w-0">
+                <!-- Label with icon -->
+                <div class="flex items-center space-x-2 mb-3">
+                    <div class="w-8 h-8 bg-gradient-to-br from-emerald-500 to-green-600 rounded-lg flex items-center justify-center shadow-sm">
+                        <i class="fas fa-arrow-up text-white text-sm"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm font-semibold text-emerald-900 uppercase tracking-wide">Stok Keluar</p>
+                        <p class="text-xs text-emerald-600/80">Hari Ini</p>
+                    </div>
+                </div>
+
+                <!-- Count -->
+                <div class="flex items-baseline space-x-2 mb-1">
+                    <p class="text-3xl font-bold text-emerald-900">
+                        {{ (int)$dashboardData['transactions']['todayOut']['count'] }}
+                    </p>
+                    @if((int)$dashboardData['transactions']['todayOut']['count'] > 0)
+                    <span class="text-xs font-medium px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded-full">
+                        <i class="fas fa-chart-line mr-0.5 text-xs"></i>
+                        {{ round(($dashboardData['transactions']['todayOut']['count'] / max(1, $dashboardData['transactions']['todayIn']['count'] + $dashboardData['transactions']['todayOut']['count'])) * 100) }}%
+                    </span>
+                    @endif
+                </div>
+
+                <!-- Transactions -->
+                <div class="flex items-center space-x-3">
+                    <div class="flex items-center text-emerald-700">
+                        <i class="fas fa-exchange-alt text-xs mr-1.5"></i>
+                        <span class="text-sm font-medium">
+                            {{ (int)$dashboardData['transactions']['todayOut']['transactions'] }} transaksi
+                        </span>
+                    </div>
+                    @if((int)$dashboardData['transactions']['todayOut']['count'] > 0)
+                    <div class="hidden lg:flex items-center text-emerald-600/70 text-xs">
+                        <i class="fas fa-clock mr-1"></i>
+                        Rata-rata: {{ round($dashboardData['transactions']['todayOut']['count'] / max(1, $dashboardData['transactions']['todayOut']['transactions']), 1) }}/transaksi
+                    </div>
+                    @endif
+                </div>
+            </div>
+
+            <!-- Right Icon -->
+            <div class="relative">
+                <div class="w-14 h-14 bg-gradient-to-br from-emerald-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg transform group-hover:scale-110 transition-transform duration-300">
+                    <i class="fas fa-truck-loading text-white text-lg"></i>
+                </div>
+                <!-- Animated dots for live indicator -->
+                <div class="absolute -top-1 -right-1">
+                    <div class="w-3 h-3 bg-orange-500 rounded-full animate-pulse"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Progress Bar (visible on hover) -->
+        @if((int)$dashboardData['transactions']['todayOut']['count'] > 0)
+        <div class="mt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <div class="flex justify-between text-xs text-emerald-700/70 mb-1">
+                <span>Progress Harian</span>
+                <span>{{ round(($dashboardData['transactions']['todayOut']['count'] / ($dashboardData['transactions']['todayOut']['count'] + 30)) * 100) }}%</span>
+            </div>
+            <div class="w-full h-2 bg-emerald-200 rounded-full overflow-hidden">
+                <div class="h-full bg-gradient-to-r from-emerald-500 to-green-600 rounded-full transition-all duration-500"
+                    style="width: {{ min(100, ($dashboardData['transactions']['todayOut']['count'] / ($dashboardData['transactions']['todayOut']['count'] + 30)) * 100) }}%"></div>
+            </div>
+        </div>
+        @endif
+    </div>
+
+    <!-- Corner Decoration -->
+    <div class="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-emerald-500/10 to-transparent rounded-bl-2xl"></div>
+</div>
+=========
+
+
 @extends('layouts.master')
 
 @section('title', $transaksiData['pageTitle'])
@@ -70,7 +237,7 @@
                 <label class="block text-sm font-semibold text-gray-700">Jenis Transaksi</label>
                 <select class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white transition-all duration-200 hover:border-gray-300">
                     @foreach($transaksiData['filters']['jenis'] as $jenis)
-                        <option value="{{ $jenis }}">{{ $jenis }}</option>
+                    <option value="{{ $jenis }}">{{ $jenis }}</option>
                     @endforeach
                 </select>
             </div>
@@ -80,7 +247,7 @@
                 <label class="block text-sm font-semibold text-gray-700">Bahan Baku</label>
                 <select class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white transition-all duration-200 hover:border-gray-300">
                     @foreach($transaksiData['filters']['bahan'] as $bahan)
-                        <option value="{{ $bahan }}">{{ $bahan }}</option>
+                    <option value="{{ $bahan }}">{{ $bahan }}</option>
                     @endforeach
                 </select>
             </div>
@@ -90,7 +257,7 @@
                 <label class="block text-sm font-semibold text-gray-700">Periode</label>
                 <select class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white transition-all duration-200 hover:border-gray-300">
                     @foreach($transaksiData['filters']['periode'] as $periode)
-                        <option value="{{ $periode }}">{{ $periode }}</option>
+                    <option value="{{ $periode }}">{{ $periode }}</option>
                     @endforeach
                 </select>
             </div>
@@ -105,8 +272,7 @@
                     <input
                         type="text"
                         placeholder="Cari transaksi..."
-                        class="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-gray-300"
-                    >
+                        class="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-gray-300">
                 </div>
             </div>
         </div>
@@ -306,9 +472,12 @@
             background: #2563eb !important;
             color: white !important;
         }
-        .shadow-lg, .shadow-xl {
+
+        .shadow-lg,
+        .shadow-xl {
             box-shadow: none !important;
         }
+
         button {
             display: none !important;
         }

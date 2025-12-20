@@ -66,7 +66,7 @@
                                 class="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white text-xs font-bold mr-3">
                                 {{ substr($transaction['pegawai'], 0, 1) }}
                             </div>
-                            <span class="text-sm text-gray-700">{{ $transaction['pegawai'] }}</span>
+                            <span class="text-sm text-gray-700">{{{ $transaction['pegawai'] }}}</span>
                         </div>
                     </td>
 

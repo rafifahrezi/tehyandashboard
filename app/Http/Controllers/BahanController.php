@@ -33,8 +33,7 @@ class BahanController extends Controller
                     'supplier' => $bahan->supplier,
                     'stok_sekarang' => $bahan->stok_sekarang,
                     'min_stok' => $bahan->min_stok,
-                    'status' => $this->determineStockStatus($bahan),
-                    'lokasi' => $bahan->lokasi,
+                    'status' => $bahan->status,
                     'tanggal_masuk' => Carbon::parse($bahan->tanggal_masuk)->format('d M Y'),
                     'tanggal_kadaluarsa' => Carbon::parse($bahan->tanggal_kadaluarsa)->format('d M Y'),
                 ];
@@ -48,19 +47,6 @@ class BahanController extends Controller
             'pageTitle' => 'Manajemen Bahan Baku',
             'pageDescription' => 'Kelola dan pantau stok bahan baku Anda',
         ]);
-    }
-
-    /**
-     * Determine stock status
-     */
-    private function determineStockStatus(Bahan $bahan)
-    {
-        if ($bahan->stok_sekarang <= $bahan->min_stok) {
-            return 'kritis';
-        } elseif ($bahan->stok_sekarang <= $bahan->min_stok * 1.5) {
-            return 'warning';
-        }
-        return 'aman';
     }
 
     /**
@@ -86,6 +72,7 @@ class BahanController extends Controller
 
         return $prefix . str_pad($number, 3, '0', STR_PAD_LEFT);
     }
+    
 
     /**
      * Show the form for creating a new resource.
@@ -146,10 +133,9 @@ class BahanController extends Controller
                 'min_stok' => $request->min_stok,
                 'harga' => $request->harga,
                 'supplier' => $request->supplier,
-                'lokasi' => $request->lokasi,
                 'tanggal_masuk' => $request->tanggal_masuk,
                 'tanggal_kadaluarsa' => $request->tanggal_kadaluarsa,
-                'is_active' => $request->is_active ?? true,
+                'is_active' => $request->is_active ?? 'active',
             ]);
 
             DB::commit();

@@ -41,60 +41,98 @@ class Bahan extends Model
         'tanggal_masuk',
         'tanggal_kadaluarsa',
         'is_active'
+        // ❌ status TIDAK di-fill manual
     ];
 
-    // Casting untuk tipe data
     protected $casts = [
+        'stok_sekarang' => 'float',
+        'min_stok' => 'float',
         'harga' => 'decimal:2',
-        'stok_sekarang' => 'decimal:2',
-        'min_stok' => 'decimal:2'
     ];
 
-    // Relasi dengan Category
-    public function category()
+    /**
+     * 🔥 MODEL EVENT
+     */
+    public function refreshStatus(): void
     {
-        return $this->belongsTo(Category::class, 'category_id', 'id');
+        $this->status = $this->determineStockStatus();
+        $this->saveQuietly(); // tidak trigger observer loop
     }
 
-    // Relasi ke stock moves (satu bahan memiliki banyak transaksi stok)
-    public function stockMoves()
-    {
-        return $this->hasMany(StockMove::class);
-    }
-
-    // Scope untuk filter status
-    public function scopeActive($query)
-    {
-        return $query->where('is_active', 'aman');
-    }
-
-    // Method untuk mengecek status stok
-    public function checkStokStatus()
+    /**
+     * 🔥 SINGLE SOURCE OF TRUTH
+     */
+    public function determineStockStatus(): string
     {
         if ($this->stok_sekarang <= 0) {
             return 'habis';
-        } elseif ($this->stok_sekarang <= $this->min_stok) {
+        }
+
+        if ($this->stok_sekarang <= ($this->min_stok * 0.5)) {
             return 'kritis';
-        } elseif ($this->stok_sekarang <= ($this->min_stok * 1.5)) {
+        }
+
+        if ($this->stok_sekarang < $this->min_stok) {
             return 'warning';
         }
+
         return 'aman';
     }
 
-    // Update stok bahan
-    public function updateStock(float $qty, string $moveType): void
+    /* ===============================
+     | APPLY STOCK MOVE
+     ===============================*/
+    public function applyStockMove(string $type, float $qty): void
     {
-        if ($moveType === 'in') {
-            $this->stok_sekarang += $qty;
-        } else {
-            $this->stok_sekarang -= $qty;
+        if ($type === 'out' && $this->stok_sekarang < $qty) {
+            throw new \Exception('Stok tidak mencukupi');
         }
+
+        $this->stok_sekarang = $type === 'in'
+            ? $this->stok_sekarang + $qty
+            : $this->stok_sekarang - $qty;
+
         $this->save();
+        $this->refreshStatus();
     }
 
+    public function rollbackStockMove(string $type, float $qty): void
+    {
+        $this->stok_sekarang = $type === 'in'
+            ? $this->stok_sekarang - $qty
+            : $this->stok_sekarang + $qty;
+
+        $this->save();
+        $this->refreshStatus();
+    }
+
+    /* ===============================
+     * EVENT MODEL
+     * =============================== */
+    protected static function booted()
+    {
+        static::saving(function ($bahan) {
+            $bahan->status = $bahan->determineStockStatus();
+        });
+    }
+
+    
     // Tambahkan method static untuk memudahkan akses dari view/controller
     public static function getSatuanOptions(): array
     {
         return self::SATUAN_OPTIONS;
     }
+
+    /* ================= RELATION ================= */
+
+    public function category()
+    {
+        return $this->belongsTo(Category::class);
+    }
+
+    public function stockMoves()
+    {
+        return $this->hasMany(StockMove::class);
+    }
+
 }

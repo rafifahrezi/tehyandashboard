@@ -17,7 +17,8 @@ class TransaksiStokController extends Controller
      */
     public function index(Request $request)
     {
-        $query = StockMove::with(['bahan'])->latest();
+        $query = StockMove::with(['bahan', 'user'])->latest();
+
 
         if ($request->filled('bahan_id')) {
             $query->where('bahan_id', $request->bahan_id);
@@ -48,7 +49,7 @@ class TransaksiStokController extends Controller
                 'jumlah'         => $item->qty,
                 'stok_sebelum'   => $item->stok_sebelum,
                 'stok_sesudah'   => $item->stok_sesudah,
-                'pegawai'        => 'Admin',
+                'pegawai'        => $item->user->name ?? 'Admin nih (?)',
                 'keterangan'     => $item->reference_type ?? '-',
             ];
         });
@@ -73,21 +74,7 @@ class TransaksiStokController extends Controller
     /* =======================================================
      * LOGIKA PERHITUNGAN STOK – SINGLE SOURCE OF TRUTH
      * ======================================================= */
-    private function calculateNewStock($moveType, $qty, Bahan $bahan)
-    {
-        $stokSebelum = $bahan->stok_sekarang;
 
-        if ($moveType === 'in') {
-            $stokSesudah = $stokSebelum + $qty;
-        } else {
-            if ($stokSebelum < $qty) {
-                throw new \Exception("Stok tidak cukup. Stok tersedia: $stokSebelum");
-            }
-            $stokSesudah = $stokSebelum - $qty;
-        }
-
-        return [$stokSebelum, $stokSesudah];
-    }
 
     // Calculate Filter Periode
     private function periodDateRange($periode)
@@ -266,27 +253,6 @@ class TransaksiStokController extends Controller
                 'success' => false,
                 'message' => 'Gagal mengupdate transaksi: ' . $e->getMessage()
             ], 500);
-        }
-    }
-    /**
-     * Rollback stok ke nilai sebelum transaksi
-     */
-    protected function rollbackStock(StockMove $stockMove, Bahan $bahan): void
-    {
-        $bahan->stok_sekarang = $stockMove->move_type === 'in'
-            ? $bahan->stok_sekarang - $stockMove->qty
-            : $bahan->stok_sekarang + $stockMove->qty;
-
-        $bahan->save();
-    }
-
-    /**
-     * Validasi ketersediaan stok
-     */
-    protected function validateStock(string $moveType, float $qty, Bahan $bahan): void
-    {
-        if ($moveType === 'out' && $bahan->stok_sekarang < $qty) {
-            throw new \Exception('Stok tidak mencukupi. Stok tersedia: ' . $bahan->stok_sekarang);
         }
     }
 

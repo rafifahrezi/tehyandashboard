@@ -62,7 +62,8 @@
                             :class="{
                                 'bg-green-100 text-green-800 border-green-200': bahan.status === 'aman',
                                 'bg-yellow-100 text-yellow-800 border-yellow-200': bahan.status === 'warning',
-                                'bg-red-100 text-red-800 border-red-200': bahan.status === 'kritis'
+                                'bg-red-100 text-red-800 border-red-200': bahan.status === 'kritis',
+                                'bg-red-100 text-white-800 border-red-200': bahan.status === 'habis'
                             }"
                             class="px-3 py-1 rounded-full text-xs font-medium border"
                             x-text="bahan.status.toUpperCase()"></span>
@@ -83,8 +84,7 @@
                                     'bg-yellow-500': bahan.status === 'warning',
                                     'bg-red-500': bahan.status === 'kritis'
                                 }"
-                                    class="h-2 rounded-full transition-all duration-300"
-                                    :style="`width: ${Math.min((bahan.stok_sekarang / bahan.min_stok) * 100, 100)}%`"></div>
+                                    class="h-2 rounded-full transition-all duration-300"></div>
                             </div>
                         </div>
 
@@ -136,7 +136,7 @@
 
         <!-- Empty State -->
         <div x-show="filteredBahans.length === 0" class="col-span-full">
-            <div class="bg-white rounded-xl shadow-sm p-12 text-center border border-gray-100">
+            <div class="bg-white rounded-xl shadow-sm p-12 text-center border border-gray-100"> 
                 <svg class="mx-auto h-16 w-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                         d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4">
@@ -144,7 +144,7 @@
                 </svg>
                 <h3 class="text-lg font-medium text-gray-900 mb-2">Tidak ada bahan baku</h3>
                 <p class="text-gray-500 mb-6">Tidak ada bahan baku yang sesuai dengan kriteria pencarian Anda.</p>
-                <a href="{{ route('manajemen.bahan-admin.create') }}"
+                <a href="{{ $is_active === 'inactive' ? '#' : route('manajemen.bahan-admin.create') }}"
                     class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 inline-flex items-center">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
@@ -185,30 +185,12 @@
                 },
                 modalTitle: '',
 
-                init() {
-                    console.log('Bahan Management initialized');
-                    console.log('Total bahans:', this.bahans.length);
-
-                    this.bahans = this.bahans.map(bahan => ({
-                        ...bahan,
-                        status: this.calculateStatus(bahan)
-                    }));
-                },
-
-                  // Function to show snackbar
+                // Function to show snackbar
                 showSnackbar(notification) {
                     const event = new CustomEvent('show-snackbar', {
                         detail: notification
                     });
                     document.querySelector('x-snackbar-notification').dispatchEvent(event);
-                },
-
-
-                calculateStatus(bahan) {
-                    const stokPercentage = (bahan.stok_sekarang / bahan.min_stok) * 100;
-                    if (stokPercentage >= 100) return 'aman';
-                    if (stokPercentage >= 50) return 'warning'; 
-                    return 'kritis';
                 },
 
                 formatRupiah(angka) {
@@ -253,7 +235,7 @@
                         }
 
                         this.showSnackbar(`Bahan "${bahan.nama_bahan}" berhasil dihapus`,
-                        'success');
+                            'success');
 
                     } catch (error) {
                         console.error('Error menghapus bahan:', error);
