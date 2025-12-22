@@ -29,4 +29,10 @@ class ViewServiceProvider extends ServiceProvider
             $view->with('lowStockCount', $lowStockCount);
         });
     }
+
+    protected $listen = [
+        'Illuminate\Database\Events\ModelDeleting' => [
+            'App\Listeners\DetachUserRolesBeforeDelete',
+        ],
+    ];
 }

@@ -144,7 +144,7 @@
                 </svg>
                 <h3 class="text-lg font-medium text-gray-900 mb-2">Tidak ada bahan baku</h3>
                 <p class="text-gray-500 mb-6">Tidak ada bahan baku yang sesuai dengan kriteria pencarian Anda.</p>
-                <a href="{{ $is_active === 'inactive' ? '#' : route('manajemen.bahan-admin.create') }}"
+                <a href="{{ route('manajemen.bahan-admin.create') }}"
                     class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200 inline-flex items-center">
                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>

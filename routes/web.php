@@ -20,12 +20,15 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/admin-manajemen-bahan/{id}/edit', [BahanController::class, 'edit'])->name('manajemen.bahan-admin.edit');
     Route::put('/admin-manajemen-bahan/{id}', [BahanController::class, 'update'])->name('manajemen.bahan-admin.update');
     Route::delete('/admin-manajemen-bahan/{id}', [BahanController::class, 'destroy'])->name('manajemen.bahan-admin.destroy');
-
+    
     Route::get('/admin-transaksi-stok', [TransaksiStokController::class, 'index'])->name('transaksi.stok-admin');
     Route::post('/admin-transaksi-stok', [TransaksiStokController::class, 'store'])->name('transaksi.stok-admin.store');
     Route::get('/admin-transaksi-stok/create', [TransaksiStokController::class, 'create'])->name('transaksi.stok-admin.create');
-
+    // Manajemen User
     Route::get('/admin-manajemen-user', [ManajemenUserController::class, 'index'])->name('manajemen.user-admin');
+    Route::get('/admin-manajemen-user/create', [ManajemenUserController::class, 'create'])->name('manajemen.user-admin.create');
+    Route::post('/admin-manajemen-user', [ManajemenUserController::class, 'store'])->name('manajemen.user-admin.store');
+    Route::delete('/admin-manajemen-user/{id}', [ManajemenUserController::class, 'destroy'])->name('manajemen.user-admin.destroy');
 });
 
 Route::middleware(['auth', 'role:owner'])->group(function () {
@@ -39,7 +42,13 @@ Route::middleware(['auth', 'role:owner'])->group(function () {
     Route::delete('/owner-manajemen-bahan/{id}', [BahanController::class, 'destroy'])->name('manajemen.bahan-owner.destroy');
 
     Route::get('/owner-transaksi-stok', [TransaksiStokController::class, 'index'])->name('transaksi.stok-owner');
+
+      // Baru buat yg User
     Route::get('/owner-manajemen-user', [ManajemenUserController::class, 'index'])->name('manajemen.user-owner');
+    Route::get('/owner-manajemen-user/create', [ManajemenUserController::class, 'create'])->name('manajemen.user-owner.create');
+    Route::post('/owner-manajemen-user', [ManajemenUserController::class, 'store'])->name('manajemen.user-owner.store');
+    Route::delete('/owner-manajemen-user/{id}', [ManajemenUserController::class, 'destroy'])->name('manajemen.user-owner.destroy');
+
 
     Route::get('/owner-laporan', [LaporanController::class, 'index'])->name('laporan-owner');
 });

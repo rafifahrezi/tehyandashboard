@@ -10,10 +10,11 @@
                 <div class="mb-6 lg:mb-0">
                     <h1 class="text-3xl font-bold mb-2">{{ $pageTitle }}</h1>
                     <p class="text-blue-100 text-lg">{{ $pageDescription }}</p>
-
+                    <h3>Ini ada di Owner</h3>
+                    <p>232</p>
                 </div>
 
-                <a href="{{ route('manajemen.user-admin.create') }}"
+                <a href="{{ route('manajemen.user-owner.create') }}"
                     class="bg-white text-blue-600 hover:bg-blue-50 font-semibold py-3 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center group">
                     <i class="fas fa-user-plus mr-3 text-lg"></i>
                     Tambah User
@@ -190,7 +191,7 @@
                                     <div class="flex items-center space-x-3">
                                         {{-- WhatsApp Button --}}
                                         @if ($user->telp)
-                                            <a href="https://wa.me/{{ $formatWhatsAppNumber($user->telp) }}"
+                                            <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $user->telp) }}"
                                                 target="_blank"
                                                 class="text-green-600 hover:text-green-700 hover:bg-green-50 rounded-lg px-3 py-2 transition"
                                                 title="Chat WhatsApp">
@@ -213,7 +214,7 @@
 
                                 <!-- Hidden Delete Form -->
                                 <form id="delete-form-{{ $user->id }}"
-                                    action="{{ route('manajemen.user-admin.destroy', $user->id) }}" method="POST"
+                                    action="{{ route('manajemen.user-owner.destroy', $user->id) }}" method="POST"
                                     class="hidden">
                                     @csrf
                                     @method('DELETE')
@@ -239,7 +240,7 @@
                     <p class="text-gray-600 text-lg mb-8 max-w-md mx-auto">Mulai kelola tim Anda dengan menambahkan user
                         pertama
                     </p>
-                    <a href="{{ route('manajemen-user.create') }}"
+                    <a href="#"
                         class="bg-gradient-to-r from-blue-600 to-indigo-700 text-white font-semibold py-4 px-8 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105">
                         <i class="fas fa-user-plus mr-3"></i>
                         Tambah User Pertama
