@@ -1,101 +1,66 @@
 @php
     use Illuminate\Support\Facades\Auth;
-
+    
     $currentRoute = request()->route()->getName();
-
-    // Ambil user yang sedang login
     $user = Auth::user();
-
-    if ($user && $user->hasRole('owner')) {
+    
+    // Menu items berdasarkan role - Simplified dengan unified routes
+    $menuItems = [];
+    
+    // Menu untuk Admin & Owner (keduanya bisa akses)
+    if ($user && ($user->hasRole('admin') || $user->hasRole('owner'))) {
         $menuItems = [
             [
                 'title' => 'Dashboard',
-                'url' => route('owner.panel'),
+                'route' => 'dashboard',
                 'icon' => 'fas fa-chart-pie',
-                'active' => $currentRoute === 'owner.panel',
+                'roles' => ['admin', 'owner'],
                 'badge' => null,
             ],
             [
                 'title' => 'Manajemen Bahan',
-                'url' => route('manajemen.bahan-owner'),
+                'route' => 'manajemen.bahan.index',
                 'icon' => 'fas fa-boxes',
-                'active' => $currentRoute === 'manajemen.bahan-owner',
+                'roles' => ['admin', 'owner'],
                 'badge' => null,
             ],
             [
                 'title' => 'Transaksi Stok',
-                'url' => route('transaksi.stok-owner'),
+                'route' => 'transaksi.stok.index',
                 'icon' => 'fas fa-exchange-alt',
-                'active' => $currentRoute === 'transaksi.stok-owner',
+                'roles' => ['admin', 'owner'],
+                'badge' => null,
+            ],
+            [
+                'title' => 'Manajemen User',
+                'route' => 'manajemen.user.index',
+                'icon' => 'fas fa-users',
+                'roles' => ['admin', 'owner'],
                 'badge' => null,
             ],
             [
                 'title' => 'Laporan',
-                'url' => route('laporan-owner'),
+                'route' => 'laporan',
                 'icon' => 'fas fa-chart-bar',
-                'active' => $currentRoute === 'laporan-owner',
-                'badge' => null,
-            ],
-            [
-                'title' => 'Manajemen User',
-                'url' => route('manajemen.user-owner'),
-                'icon' => 'fas fa-users',
-                'active' => $currentRoute === 'manajemen.user-owner',
-                'badge' => null,
-            ],
-        ];
-    } elseif ($user && $user->hasRole('admin')) {
-        $menuItems = [
-            [
-                'title' => 'Dashboard',
-                'url' => route('admin.panel'),
-                'icon' => 'fas fa-chart-pie',
-                'active' => $currentRoute === 'admin.panel',
-                'badge' => null,
-            ],
-            [
-                'title' => 'Manajemen Bahan',
-                'url' => route('manajemen.bahan-admin'),
-                'icon' => 'fas fa-boxes',
-                'active' => $currentRoute === 'manajemen.bahan-admin',
-                'badge' => null,
-            ],
-            [
-                'title' => 'Transaksi Stok',
-                'url' => route('transaksi.stok-admin'),
-                'icon' => 'fas fa-exchange-alt',
-                'active' => $currentRoute === 'transaksi.stok-admin',
-                'badge' => null,
-            ],
-            [
-                'title' => 'Manajemen User',
-                'url' => route('manajemen.user-admin'),
-                'icon' => 'fas fa-users',
-                'active' => $currentRoute === 'manajemen.user-admin',
+                'roles' => ['owner'], // Only owner can access
                 'badge' => null,
             ],
         ];
     }
-
-    $user = [
-        'name' => 'rafffahrezi4',
-        'role' => 'Pemilik Toko / Admin War...',
-        'initial' => 'R',
-    ];
-
-    // Mock data for low stock warning
-
+    
+    // Low stock count (optional - implement your logic)
+    $lowStockCount = \App\Models\Bahan::where('stok_sekarang', '<=', \DB::raw('min_stok'))->count();
 @endphp
 
 <!-- Sidebar -->
 <aside id="sidebar"
     class="w-64 bg-white/80 backdrop-blur-xl border-r border-slate-200/60 sidebar-transition transform lg:translate-x-0 lg:static fixed inset-y-0 left-0 z-50 -translate-x-full">
     <div class="flex flex-col h-full">
+        
         <!-- Sidebar Header -->
         <div class="border-b border-slate-200/60 p-6">
             <div class="flex items-center gap-3">
-                <div
-                    class="w-10 h-10 bg-gradient-to-br from-indigo-600 to-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/20">
+                <div class="w-10 h-10 bg-gradient-to-br from-indigo-600 to-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/20">
                     <i class="fas fa-boxes text-white text-lg"></i>
                 </div>
                 <div>
@@ -115,34 +80,49 @@
 
                 <nav class="space-y-1">
                     @foreach ($menuItems as $item)
-                        <a href="{{ $item['url'] }}"
-                            class="group flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 mb-1
-                              {{ $item['active']
-                                  ? 'bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-lg shadow-indigo-500/20'
-                                  : 'text-slate-600 hover:bg-indigo-50 hover:text-indigo-700' }}">
+                        {{-- Check if user has required role for this menu item --}}
+                        @php
+                            $hasAccess = false;
+                            foreach ($item['roles'] as $role) {
+                                if ($user->hasRole($role)) {
+                                    $hasAccess = true;
+                                    break;
+                                }
+                            }
+                            
+                            // Check if current route is active
+                            $isActive = $currentRoute === $item['route'] || 
+                                       str_starts_with($currentRoute, $item['route'] . '.');
+                        @endphp
+                        
+                        @if ($hasAccess)
+                            <a href="{{ route($item['route']) }}"
+                                class="group flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 mb-1
+                                    {{ $isActive
+                                        ? 'bg-gradient-to-r from-indigo-600 to-blue-600 text-white shadow-lg shadow-indigo-500/20'
+                                        : 'text-slate-600 hover:bg-indigo-50 hover:text-indigo-700' }}">
 
-                            <!-- Icon -->
-                            <i
-                                class="{{ $item['icon'] }} w-5 h-5 {{ $item['active'] ? 'text-white' : 'text-slate-400 group-hover:text-indigo-600' }}"></i>
+                                <!-- Icon -->
+                                <i class="{{ $item['icon'] }} w-5 h-5 {{ $isActive ? 'text-white' : 'text-slate-400 group-hover:text-indigo-600' }}"></i>
 
-                            <!-- Menu Text -->
-                            <span class="font-medium flex-1">{{ $item['title'] }}</span>
+                                <!-- Menu Text -->
+                                <span class="font-medium flex-1">{{ $item['title'] }}</span>
 
-                            <!-- Badge for Dashboard -->
-                            @if ($item['title'] === 'Dashboard' && $lowStockCount > 0)
-                                <span class="bg-amber-500 text-white text-xs px-2 py-1 rounded-full font-medium">
-                                    {{ $lowStockCount }}
-                                </span>
-                            @endif
-                        </a>
+                                <!-- Badge for Dashboard -->
+                                @if ($item['title'] === 'Dashboard' && $lowStockCount > 0)
+                                    <span class="bg-amber-500 text-white text-xs px-2 py-1 rounded-full font-medium">
+                                        {{ $lowStockCount }}
+                                    </span>
+                                @endif
+                            </a>
+                        @endif
                     @endforeach
                 </nav>
             </div>
 
             <!-- Low Stock Warning -->
             @if ($lowStockCount > 0)
-                <div
-                    class="mx-3 p-4 bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl border border-amber-200/60">
+                <div class="mx-3 p-4 bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl border border-amber-200/60">
                     <div class="flex items-start gap-3">
                         <i class="fas fa-bell w-5 h-5 text-amber-600 mt-0.5"></i>
                         <div>
@@ -154,17 +134,15 @@
                     </div>
                 </div>
             @endif
-
         </div>
 
         <!-- Sidebar Footer -->
         <div class="border-t border-slate-200/60 p-4">
             <div class="space-y-3">
-                @if (auth()->check())
+                @auth
                     <!-- User Info -->
                     <div class="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
-                        <div
-                            class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-full flex items-center justify-center shadow-md">
+                        <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-full flex items-center justify-center shadow-md">
                             <span class="text-white font-bold text-sm">
                                 {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
                             </span>
@@ -173,7 +151,13 @@
                             <p class="font-semibold text-slate-900 text-sm truncate">
                                 {{ auth()->user()->name }}
                             </p>
-                            <p class="text-xs text-slate-500 truncate">
+                            <p class="text-xs text-slate-500 truncate capitalize">
+                                @role('owner')
+                                    <i class="fas fa-crown text-amber-500 mr-1"></i>
+                                @endrole
+                                @role('admin')
+                                    <i class="fas fa-shield-alt text-blue-500 mr-1"></i>
+                                @endrole
                                 {{ auth()->user()->roles->pluck('name')->first() ?? 'Pengguna' }}
                             </p>
                         </div>
@@ -183,9 +167,9 @@
                     <form method="POST" action="{{ route('logout') }}" class="w-full">
                         @csrf
                         <button type="submit"
-                            class="w-full flex items-center gap-2 px-4 py-2 text-slate-600 border border-slate-200 rounded-xl hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-all duration-200">
+                            class="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-slate-700 border border-slate-200 rounded-xl hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-all duration-200 font-medium">
                             <i class="fas fa-sign-out-alt w-4 h-4"></i>
-                            <span class="font-medium text-black">Keluar</span>
+                            <span>Keluar</span>
                         </button>
                     </form>
                 @else
@@ -195,14 +179,13 @@
                             Silakan masuk untuk mengakses fitur
                         </p>
                         <a href="{{ route('login') }}"
-                            class="w-full inline-block px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors">
+                            class="w-full inline-block px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors font-medium">
                             Masuk
                         </a>
                     </div>
-                @endif
+                @endauth
             </div>
         </div>
-
     </div>
 </aside>
 

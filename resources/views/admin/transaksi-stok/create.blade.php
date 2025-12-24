@@ -6,7 +6,7 @@
         <p class="text-gray-600 mb-8">{{ $pageDescription }}</p>
 
         <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100" id="stockForm">
-            <form action="{{ route('transaksi.stok-admin.store') }}" method="POST" id="transactionForm">
+            <form action="{{ route('transaksi.stok.store') }}" method="POST" id="transactionForm">
                 @csrf
 
                 <!-- Bahan Baku -->
@@ -529,7 +529,7 @@
                 // Redirect to index page after 7 seconds
                 setTimeout(() => {
                     window.location.href =
-                    "{{ route('transaksi.stok-admin') }}"; // Replace with your index route
+                    "{{ route('transaksi.stok.index') }}";
                 }, 7000); // 7000 milliseconds = 7 seconds
             }
 
@@ -543,13 +543,13 @@
                 setTimeout(() => {
                     modal.classList.add('hidden');
                     document.body.style.overflow = 'auto';
-                    window.location.href = "{{ route('transaksi.stok-admin') }}"
+                    window.location.href = "{{ route('transaksi.stok.index') }}"
                 }, 200);
             }
 
             // Fungsi untuk pergi ke daftar transaksi
             function goToTransactions() {
-                window.location.href = "{{ route('transaksi.stok-admin') }}";
+                window.location.href = "{{ route('transaksi.stok.index') }}";
             }
 
             // Fungsi untuk reset state form

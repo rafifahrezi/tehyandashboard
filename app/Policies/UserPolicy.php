@@ -13,19 +13,19 @@ class UserPolicy
     /**
      * Determine whether the user can view any models.
      */
-    public function viewAny(User $user): bool
+    public function viewAny(User $authUser): bool
     {
-        return $authUser->hasPermissionTo('view users') || $authUser->hasRole('admin');    
+        return $authUser->hasPermissionTo('view users') || $authUser->hasRole('admin');
     }
 
     /**
      * Determine whether the user can view the model.
      */
-    public function view(User $user, User $model): bool
+    public function view(User $authUser, User $model): bool
     {
         return $authUser->hasPermissionTo('view users')
             || $authUser->hasRole('admin')
-            || $authUser->id === $user->id; // Boleh lihat profil sendiri
+            || $authUser->id === $model->id; // Boleh lihat profil sendiri
     }
 
     /**
@@ -39,9 +39,9 @@ class UserPolicy
     /**
      * Determine whether the user can update the model.
      */
-    public function update(User $user, User $model): bool
+    public function update(User $authUser, User $targetUser): bool
     {
-        return false;
+        return $authUser->hasRole('owner') && $authUser->id !== $targetUser->id;
     }
 
     /**
@@ -49,12 +49,7 @@ class UserPolicy
      */
     public function delete(User $authUser, User $targetUser): bool
     {
-        // Owner boleh hapus siapa pun kecuali dirinya sendiri
-        if ($authUser->hasRole('owner')) {
-            return !$authUser->is($targetUser);
-        }
-
-        return false;
+        return $authUser->hasRole('owner') && $authUser->id !== $targetUser->id;
     }
 
 

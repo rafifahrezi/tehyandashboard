@@ -72,7 +72,7 @@ class BahanController extends Controller
 
         return $prefix . str_pad($number, 3, '0', STR_PAD_LEFT);
     }
-    
+
 
     /**
      * Show the form for creating a new resource.
@@ -95,73 +95,74 @@ class BahanController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'nama_bahan' => 'required|string|max:255',
-            'category_id' => 'required|exists:categories,id',
-            'satuan' => 'required|string|max:50',
-            'stok_sekarang' => 'required|numeric|min:0',
-            'min_stok' => 'required|numeric|min:0',
-            'harga' => 'required|numeric|min:0',
-            'supplier' => 'required|string|max:255',
-            'lokasi' => 'nullable|string|max:255',
-            'tanggal_masuk' => 'required|date',
+            'nama_bahan'     => 'required|string|max:255',
+            'category_id'    => 'required|exists:categories,id',
+            'satuan'         => 'required|string|max:50',
+            'stok_sekarang'  => 'required|numeric|min:0',
+            'min_stok'       => 'required|numeric|min:0',
+            'harga'          => 'required|numeric|min:0',
+            'supplier'       => 'required|string|max:255',
+            'lokasi'         => 'nullable|string|max:255',
+            'tanggal_masuk'  => 'required|date',
             'tanggal_kadaluarsa' => 'required|date|after:tanggal_masuk',
-            'is_active' => 'nullable|boolean',
+            'is_active'      => 'nullable|boolean',
         ]);
 
         if ($validator->fails()) {
-            return redirect()->back()
+            return back()
                 ->withErrors($validator)
                 ->withInput()
-                ->with('toast', [
-                    'type' => 'error',
-                    'title' => 'Validasi Gagal',
-                    'message' => 'Terdapat kesalahan dalam pengisian form. Silakan periksa kembali data Anda.',
-                    'duration' => 15000
+                ->with('notification', [
+                    'type'     => 'error',
+                    'title'    => 'Validasi Gagal',
+                    'message'  => 'Periksa kembali isian form Anda.',
+                    'duration' => 8000
                 ]);
         }
 
-        DB::beginTransaction();
         try {
-            $kodeBahan = $this->generateKodeBahan($request->category_id);
+            DB::transaction(function () use ($request) {
+                $kodeBahan = $this->generateKodeBahan($request->category_id);
 
-            Bahan::create([
-                'kode_bahan' => $kodeBahan,
-                'nama_bahan' => $request->nama_bahan,
-                'category_id' => $request->category_id,
-                'satuan' => $request->satuan,
-                'stok_sekarang' => $request->stok_sekarang,
-                'min_stok' => $request->min_stok,
-                'harga' => $request->harga,
-                'supplier' => $request->supplier,
-                'tanggal_masuk' => $request->tanggal_masuk,
-                'tanggal_kadaluarsa' => $request->tanggal_kadaluarsa,
-                'is_active' => $request->is_active ?? 'active',
-            ]);
+                Bahan::create([
+                    'kode_bahan'       => $kodeBahan,
+                    'nama_bahan'       => $request->nama_bahan,
+                    'category_id'      => $request->category_id,
+                    'satuan'           => $request->satuan,
+                    'stok_sekarang'    => $request->stok_sekarang,
+                    'min_stok'         => $request->min_stok,
+                    'harga'            => $request->harga,
+                    'supplier'         => $request->supplier,
+                    'lokasi'           => $request->lokasi,
+                    'tanggal_masuk'    => $request->tanggal_masuk,
+                    'tanggal_kadaluarsa' => $request->tanggal_kadaluarsa,
+                    'is_active'        => $request->is_active ?? true,
+                ]);
+            });
 
-            DB::commit();
-
-            return redirect()->route('manajemen.bahan-admin')
-                ->with('toast', [
-                    'type' => 'success',
-                    'title' => 'Berhasil!',
-                    'message' => 'Bahan baku berhasil ditambahkan ke sistem.',
-                    'duration' => 6000
+            return redirect()
+                ->route('manajemen.bahan.index')
+                ->with('notification', [
+                    'type'     => 'success',
+                    'title'    => 'Berhasil!',
+                    'message'  => 'Bahan baku berhasil ditambahkan.',
+                    'duration' => 5000
                 ]);
         } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error('Error creating bahan: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            Log::error('Error creating bahan: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
 
-            return redirect()->back()
+            return back()
                 ->withInput()
-                ->with('toast', [
-                    'type' => 'error',
-                    'title' => 'Kesalahan Sistem',
-                    'message' => 'Terjadi kesalahan sistem saat menambahkan bahan baku. Silakan coba lagi.',
-                    'duration' => 6000
+                ->with('notification', [
+                    'type'     => 'error',
+                    'title'    => 'Gagal!',
+                    'message'  => 'Terjadi kesalahan sistem. Silakan coba lagi.',
+                    'duration' => 8000
                 ]);
         }
     }
-
 
     /**
      * Update the specified resource in storage.
@@ -174,7 +175,6 @@ class BahanController extends Controller
             'nama_bahan' => 'required|string|max:255',
             'category_id' => 'required|exists:categories,id',
             'satuan' => 'required|string|max:50',
-            'stok_sekarang' => 'required|numeric|min:0',
             'min_stok' => 'required|numeric|min:0',
             'harga' => 'required|numeric|min:0',
             'supplier' => 'required|string|max:255',
@@ -201,7 +201,6 @@ class BahanController extends Controller
                 'nama_bahan' => $request->nama_bahan,
                 'category_id' => $request->category_id,
                 'satuan' => $request->satuan,
-                'stok_sekarang' => $request->stok_sekarang,
                 'min_stok' => $request->min_stok,
                 'harga' => $request->harga,
                 'supplier' => $request->supplier,
@@ -285,35 +284,34 @@ class BahanController extends Controller
      */
     public function destroy($id)
     {
-        // Find the material to delete
-        $bahan = Bahan::findOrFail($id);
-        DB::beginTransaction();
         try {
-            // Store name for notification
+            $bahan = Bahan::findOrFail($id);
             $namaBahan = $bahan->nama_bahan;
-            // Delete the material
+
             $bahan->delete();
-            DB::commit();
+
             return response()->json([
                 'success' => true,
-                'toast' => [
+                'notification' => [
                     'type' => 'success',
-                    'title' => 'Berhasil Dihapus',
-                    'message' => "Bahan baku \"{$namaBahan}\" berhasil dihapus dari sistem.",
-                    'duration' => 4000
+                    'title' => 'Berhasil',
+                    'message' => "Bahan baku \"{$namaBahan}\" berhasil dihapus.",
+                    'duration' => 4000,
                 ]
-            ], 200);
+            ]);
         } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error('Error deleting bahan (id=' . $id . '): ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            Log::error('Error deleting bahan', [
+                'id' => $id,
+                'error' => $e->getMessage(),
+            ]);
 
             return response()->json([
                 'success' => false,
-                'toast' => [
+                'notification' => [
                     'type' => 'error',
-                    'title' => 'Gagal Menghapus',
-                    'message' => 'Terjadi kesalahan sistem saat menghapus bahan baku. Silakan coba lagi.',
-                    'duration' => 6000
+                    'title' => 'Gagal',
+                    'message' => 'Terjadi kesalahan saat menghapus bahan baku.',
+                    'duration' => 5000,
                 ]
             ], 500);
         }

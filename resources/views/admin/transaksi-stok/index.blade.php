@@ -12,7 +12,7 @@
                     <p class="text-blue-100 text-lg">{{ $pageDescription }}</p>
                 </div>
 
-                <a href="{{ route('transaksi.stok-admin.create') }}"
+                <a href="{{ route('transaksi.stok.create') }}"
                     class="bg-white text-blue-600 hover:bg-blue-50 font-semibold py-3 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center group">
                     <i class="fas fa-plus-circle mr-3 text-lg"></i>
                     Transaksi Baru
@@ -226,7 +226,7 @@
                         periode: this.periode || '',
                     });
 
-                    const res = await fetch(`{{ route('transaksi.stok-admin') }}?${params.toString()}`, {
+                    const res = await fetch(`{{ route('transaksi.stok.index') }}?${params.toString()}`, {
                         headers: {
                             "X-Requested-With": "XMLHttpRequest"
                         }

@@ -142,7 +142,7 @@
                     <div class="mt-6">
                         <button
                             class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 px-4 rounded-lg transition duration-200">
-                            <a href="{{ route('transaksi.stok-admin') }}">Lihat Semua Transaksi </a>
+                            <a href="{{ route('transaksi.stok.index') }}">Lihat Semua Transaksi </a>
                         </button>
                     </div>
                 </div>

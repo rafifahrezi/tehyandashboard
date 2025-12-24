@@ -24,11 +24,27 @@ class StoreUserRequest extends FormRequest
         return [
             'name'       => ['required', 'string', 'max:255'],
             'email'      => ['required', 'email', 'unique:users,email'],
-            'password'   => ['required', 'string', 'min:8'],
+            'password'   => ['required', 'string', 'min:8', 'confirmed'],
+            'password_confirmation' => ['required'],
             'role'       => ['required', 'exists:roles,name'],
             'telp'       => ['nullable', 'string'],
             'jabatan'    => ['nullable', 'string'],
             'department' => ['nullable', 'string'],
         ];
     }
+    /**
+     * Custom error messages (opsional, lebih ramah user)
+     */
+    public function messages(): array
+    {
+        return [
+            'password.confirmed'     => 'Konfirmasi password tidak cocok.',
+            'password.min'           => 'Password minimal 8 karakter.',
+            'password.required'      => 'Password wajib diisi.',
+            'password_confirmation.required' => 'Konfirmasi password wajib diisi.',
+            'email.unique'           => 'Email sudah digunakan oleh user lain.',
+            'role.exists'            => 'Role yang dipilih tidak valid.',
+        ];
+    }
+    
 }

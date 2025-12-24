@@ -5,7 +5,7 @@
         <div class="flex justify-between items-center mb-8">
             <h1 class="text-3xl font-bold text-gray-800">Edit Bahan Baku</h1>
             <nav class="text-sm text-gray-500">
-                <a href="{{ route('manajemen.bahan-admin') }}" class="hover:text-blue-600">Manajemen Bahan</a> /
+                <a href="{{ route('manajemen.bahan.index') }}" class="hover:text-blue-600">Manajemen Bahan</a> /
                 <span class="text-blue-600">Edit Bahan</span>
             </nav>
         </div>
@@ -34,7 +34,7 @@
             </div>
         @endif
 
-        <form action="{{ route('manajemen.bahan-admin.update', $bahan->id) }}" method="POST"
+        <form action="{{ route('manajemen.bahan.update', $bahan->id) }}" method="POST"
             class="bg-white rounded-xl border border-gray-100 shadow-lg p-8 space-y-6">
             @csrf
             @method('PUT')
@@ -163,7 +163,7 @@
             </div>
 
             <div class="flex justify-end space-x-4 mt-8">
-                <a href="{{ route('manajemen.bahan-admin') }}"
+                <a href="{{ route('manajemen.bahan.index') }}"
                     class="px-6 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition duration-200 font-medium">
                     Batal
                 </a>
