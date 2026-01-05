@@ -8,16 +8,16 @@
     <div class="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl shadow-xl p-8 text-white">
         <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between">
             <div class="mb-6 lg:mb-0">
-                <h1 class="text-3xl font-bold mb-2">{{ $laporanData['pageTitle'] }}</h1>
-                <p class="text-blue-100 text-lg">{{ $laporanData['pageDescription'] }}</p>
+                <h1 class="text-3xl font-bold mb-2">Manajemen Laporan</h1>
+                <p class="text-blue-100 text-lg">Buat, kelola, dan lihat laporan transaksi stok</p>
             </div>
 
             <div class="flex space-x-3">
-                <button class="bg-white/20 hover:bg-white/30 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center group">
-                    <i class="fas fa-file-export mr-3 text-lg"></i>
-                    Export PDF
-                </button>
-                <button class="bg-white text-blue-600 hover:bg-blue-50 font-semibold py-3 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center group">
+                <a href="{{ route('reports.create') }}" class="bg-white/20 hover:bg-white/30 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center group">
+                    <i class="fas fa-plus mr-3 text-lg"></i>
+                    Simpan Laporan
+                </a>
+                <button class="bg-white text-blue-600 hover:bg-blue-50 font-semibold py-3 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center group" onclick="window.print()">
                     <i class="fas fa-print mr-3 text-lg"></i>
                     Print
                 </button>
@@ -27,74 +27,80 @@
 
     <!-- Filter Section -->
     <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
-        <h2 class="text-xl font-bold text-gray-900 mb-6">Filter Laporan</h2>
+        <h2 class="text-xl font-bold text-gray-900 mb-6">Filter Laporan Real-time</h2>
+        <form action="{{ route('reports.index') }}" method="GET">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Tanggal Mulai -->
+                <div class="space-y-2">
+                    <label class="block text-sm font-semibold text-gray-700">Tanggal Mulai</label>
+                    <div class="relative">
+                        <i class="fas fa-calendar-alt absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        <input
+                            type="date"
+                            name="tanggal_mulai"
+                            value="{{ $filterParams['tanggal_mulai'] ?? now()->subDays(30)->format('Y-m-d') }}"
+                            class="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-gray-300"
+                        >
+                    </div>
+                </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <!-- Tanggal Mulai -->
-            <div class="space-y-2">
-                <label class="block text-sm font-semibold text-gray-700">Tanggal Mulai</label>
-                <div class="relative">
-                    <i class="fas fa-calendar-alt absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                    <input
-                        type="text"
-                        placeholder="dd/mm/yyyy"
-                        class="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-gray-300"
-                    >
+                <!-- Tanggal Akhir -->
+                <div class="space-y-2">
+                    <label class="block text-sm font-semibold text-gray-700">Tanggal Akhir</label>
+                    <div class="relative">
+                        <i class="fas fa-calendar-alt absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        <input
+                            type="date"
+                            name="tanggal_akhir"
+                            value="{{ $filterParams['tanggal_akhir'] ?? now()->format('Y-m-d') }}"
+                            class="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-gray-300"
+                        >
+                    </div>
+                </div>
+
+                <!-- Jenis Transaksi -->
+                <div class="space-y-2">
+                    <label class="block text-sm font-semibold text-gray-700">Jenis Transaksi</label>
+                    <div class="relative">
+                        <i class="fas fa-filter absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        <select name="jenis_transaksi" class="w-full pl-12 pr-10 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white transition-all duration-200 hover:border-gray-300">
+                            <option value="semua" {{ ($filterParams['jenis_transaksi'] ?? 'semua') == 'semua' ? 'selected' : '' }}>Semua</option>
+                            <option value="masuk" {{ ($filterParams['jenis_transaksi'] ?? 'semua') == 'masuk' ? 'selected' : '' }}>Masuk</option>
+                            <option value="keluar" {{ ($filterParams['jenis_transaksi'] ?? 'semua') == 'keluar' ? 'selected' : '' }}>Keluar</option>
+                        </select>
+                        <i class="fas fa-chevron-down absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                    </div>
+                </div>
+
+                <!-- Bahan Baku -->
+                <div class="space-y-2">
+                    <label class="block text-sm font-semibold text-gray-700">Bahan Baku</label>
+                    <div class="relative">
+                        <i class="fas fa-boxes absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        <select name="bahan_id" class="w-full pl-12 pr-10 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white transition-all duration-200 hover:border-gray-300">
+                            <option value="">Semua Bahan</option>
+                            @foreach($bahans ?? [] as $bahan)
+                                <option value="{{ $bahan->id }}" {{ (isset($filterParams['bahan_id']) && $filterParams['bahan_id'] == $bahan->id) ? 'selected' : '' }}>
+                                    {{ $bahan->nama_bahan }}
+                                </option>
+                            @endforeach
+                        </select>
+                        <i class="fas fa-chevron-down absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                    </div>
                 </div>
             </div>
 
-            <!-- Tanggal Akhir -->
-            <div class="space-y-2">
-                <label class="block text-sm font-semibold text-gray-700">Tanggal Akhir</label>
-                <div class="relative">
-                    <i class="fas fa-calendar-alt absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                    <input
-                        type="text"
-                        placeholder="dd/mm/yyyy"
-                        class="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-gray-300"
-                    >
-                </div>
+            <!-- Filter Actions -->
+            <div class="flex justify-end space-x-3 mt-6 pt-6 border-t border-gray-200">
+                <a href="{{ route('reports.index') }}" class="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 font-semibold">
+                    Reset
+                </a>
+                <button type="submit" class="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-700 text-white rounded-xl hover:from-blue-700 hover:to-indigo-800 transition-all duration-200 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center">
+                    <i class="fas fa-chart-bar mr-2"></i>
+                    Terapkan Filter
+                </button>
             </div>
-
-            <!-- Jenis Transaksi -->
-            <div class="space-y-2">
-                <label class="block text-sm font-semibold text-gray-700">Jenis Transaksi</label>
-                <div class="relative">
-                    <i class="fas fa-filter absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                    <select class="w-full pl-12 pr-10 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white transition-all duration-200 hover:border-gray-300">
-                        @foreach($laporanData['filters']['jenis_transaksi'] as $jenis)
-                            <option value="{{ $jenis }}">{{ $jenis }}</option>
-                        @endforeach
-                    </select>
-                    <i class="fas fa-chevron-down absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                </div>
-            </div>
-
-            <!-- Bahan Baku -->
-            <div class="space-y-2">
-                <label class="block text-sm font-semibold text-gray-700">Bahan Baku</label>
-                <div class="relative">
-                    <i class="fas fa-boxes absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                    <select class="w-full pl-12 pr-10 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white transition-all duration-200 hover:border-gray-300">
-                        @foreach($laporanData['filters']['bahan_baku'] as $bahan)
-                            <option value="{{ $bahan }}">{{ $bahan }}</option>
-                        @endforeach
-                    </select>
-                    <i class="fas fa-chevron-down absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                </div>
-            </div>
-        </div>
-
-        <!-- Filter Actions -->
-        <div class="flex justify-end space-x-3 mt-6 pt-6 border-t border-gray-200">
-            <button class="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 font-semibold">
-                Reset
-            </button>
-            <button class="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-700 text-white rounded-xl hover:from-blue-700 hover:to-indigo-800 transition-all duration-200 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center">
-                <i class="fas fa-chart-bar mr-2"></i>
-                Terapkan Filter
-            </button>
-        </div>
+        </form>
     </div>
 
     <!-- Stats Overview -->
@@ -119,6 +125,94 @@
         @endforeach
     </div>
 
+    <!-- Tabel Laporan Tersimpan -->
+    <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-xl font-bold text-gray-900">Laporan Tersimpan</h2>
+            <span class="text-sm text-gray-500">{{ $reports->total() }} laporan</span>
+        </div>
+
+        @if($reports->count() > 0)
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama Laporan</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jenis</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Periode</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    @foreach($reports as $report)
+                    <tr>
+                        <td class="px-6 py-4">
+                            <div class="font-medium text-gray-900">{{ $report->nama_laporan }}</div>
+                            <div class="text-sm text-gray-500">Dibuat oleh {{ $report->user->name ?? 'User' }}</div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full
+                                {{ $report->jenis_laporan == 'harian' ? 'bg-green-100 text-green-800' :
+                                   ($report->jenis_laporan == 'bulanan' ? 'bg-blue-100 text-blue-800' :
+                                   ($report->jenis_laporan == 'tahunan' ? 'bg-purple-100 text-purple-800' : 'bg-gray-100 text-gray-800')) }}">
+                                {{ ucfirst($report->jenis_laporan) }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-500">
+                            @if($report->jenis_laporan == 'harian')
+                                {{ \Carbon\Carbon::parse($report->tanggal_mulai)->format('d/m/Y') }}
+                            @elseif($report->jenis_laporan == 'bulanan')
+                                {{ \Carbon\Carbon::parse($report->tanggal_mulai)->format('F Y') }}
+                            @elseif($report->jenis_laporan == 'tahunan')
+                                {{ \Carbon\Carbon::parse($report->tanggal_mulai)->format('Y') }}
+                            @else
+                                {{ \Carbon\Carbon::parse($report->tanggal_mulai)->format('d/m/Y') }} - {{ \Carbon\Carbon::parse($report->tanggal_akhir)->format('d/m/Y') }}
+                            @endif
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full
+                                {{ $report->status == 'published' ? 'bg-green-100 text-green-800' :
+                                   ($report->status == 'draft' ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-800') }}">
+                                {{ ucfirst($report->status) }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-sm font-medium space-x-2">
+                            <a href="{{ route('reports.show', $report) }}" class="text-blue-600 hover:text-blue-900" title="Lihat">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="{{ route('reports.edit', $report) }}" class="text-green-600 hover:text-green-900" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <form action="{{ route('reports.destroy', $report) }}" method="POST" class="inline">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="text-red-600 hover:text-red-900" title="Hapus" onclick="return confirm('Hapus laporan ini?')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <div class="mt-4">
+            {{ $reports->links() }}
+        </div>
+        @else
+        <div class="text-center py-8 text-gray-500">
+            <i class="fas fa-file-alt text-4xl mb-4 text-gray-300"></i>
+            <p class="text-lg">Belum ada laporan yang disimpan.</p>
+            <a href="{{ route('reports.create') }}" class="mt-4 inline-block text-blue-600 hover:text-blue-800">
+                <i class="fas fa-plus mr-2"></i>Buat Laporan Pertama Anda
+            </a>
+        </div>
+        @endif
+    </div>
+
     <!-- Charts Section -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <!-- Tren Transaksi Harian -->
@@ -128,10 +222,10 @@
                     <h3 class="text-xl font-bold text-gray-900">Tren Transaksi Harian</h3>
                     <p class="text-gray-600 mt-1">{{ $laporanData['tren_harian']['periode'] }}</p>
                 </div>
-                <button class="text-blue-600 hover:text-blue-800 font-medium text-sm py-2 px-4 rounded-lg transition-all duration-200 hover:bg-blue-50">
+                <a href="#" class="text-blue-600 hover:text-blue-800 font-medium text-sm py-2 px-4 rounded-lg transition-all duration-200 hover:bg-blue-50">
                     <i class="fas fa-expand mr-2"></i>
                     Detail
-                </button>
+                </a>
             </div>
 
             <!-- Chart Container -->
@@ -143,13 +237,13 @@
                         <!-- Masuk Bar -->
                         <div
                             class="w-full bg-gradient-to-t from-green-500 to-green-400 rounded-t hover:from-green-600 hover:to-green-500 transition-all duration-300 cursor-pointer shadow-md mb-1"
-                            style="height: {{ ($day['masuk'] / 15) * 100 }}%"
+                            style="height: {{ max(10, ($day['masuk'] / max(1, max(array_column($laporanData['tren_harian']['data'], 'masuk')))) * 100) }}%"
                             title="Masuk: {{ $day['masuk'] }}"
                         ></div>
                         <!-- Keluar Bar -->
                         <div
                             class="w-full bg-gradient-to-t from-red-500 to-red-400 rounded-t hover:from-red-600 hover:to-red-500 transition-all duration-300 cursor-pointer shadow-md"
-                            style="height: {{ ($day['keluar'] / 15) * 100 }}%"
+                            style="height: {{ max(10, ($day['keluar'] / max(1, max(array_column($laporanData['tren_harian']['data'], 'keluar')))) * 100) }}%"
                             title="Keluar: {{ $day['keluar'] }}"
                         ></div>
                         <!-- Date Label -->
@@ -179,10 +273,10 @@
                     <h3 class="text-xl font-bold text-gray-900">{{ $laporanData['top_bahan']['title'] }}</h3>
                     <p class="text-gray-600 mt-1">{{ $laporanData['top_bahan']['subtitle'] }}</p>
                 </div>
-                <button class="text-blue-600 hover:text-blue-800 font-medium text-sm py-2 px-4 rounded-lg transition-all duration-200 hover:bg-blue-50">
+                <a href="#" class="text-blue-600 hover:text-blue-800 font-medium text-sm py-2 px-4 rounded-lg transition-all duration-200 hover:bg-blue-50">
                     <i class="fas fa-list mr-2"></i>
                     Lihat Semua
-                </button>
+                </a>
             </div>
 
             <div class="space-y-4">
@@ -218,10 +312,10 @@
         <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
             <div class="flex items-center justify-between mb-6">
                 <h3 class="text-xl font-bold text-gray-900">{{ $laporanData['rekap_pegawai']['title'] }}</h3>
-                <button class="text-blue-600 hover:text-blue-800 font-medium text-sm py-2 px-4 rounded-lg transition-all duration-200 hover:bg-blue-50">
+                <a href="#" class="text-blue-600 hover:text-blue-800 font-medium text-sm py-2 px-4 rounded-lg transition-all duration-200 hover:bg-blue-50">
                     <i class="fas fa-users mr-2"></i>
                     Semua Pegawai
-                </button>
+                </a>
             </div>
 
             <div class="space-y-4">
@@ -249,10 +343,10 @@
         <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
             <div class="flex items-center justify-between mb-6">
                 <h3 class="text-xl font-bold text-gray-900">Ringkasan Bulan Ini</h3>
-                <button class="text-blue-600 hover:text-blue-800 font-medium text-sm py-2 px-4 rounded-lg transition-all duration-200 hover:bg-blue-50">
+                <a href="#" class="text-blue-600 hover:text-blue-800 font-medium text-sm py-2 px-4 rounded-lg transition-all duration-200 hover:bg-blue-50">
                     <i class="fas fa-calendar mr-2"></i>
                     Detail
-                </button>
+                </a>
             </div>
 
             <div class="space-y-4">
@@ -261,7 +355,7 @@
                         <div class="flex items-center justify-between">
                             <div>
                                 <p class="text-green-800 text-sm font-medium">Total Masuk</p>
-                                <p class="text-2xl font-bold text-green-900">47 item</p>
+                                <p class="text-2xl font-bold text-green-900">{{ $laporanData['ringkasan_bulanan']['total_masuk'] ?? 0 }} item</p>
                             </div>
                             <i class="fas fa-arrow-down text-green-600 text-xl"></i>
                         </div>
@@ -270,7 +364,7 @@
                         <div class="flex items-center justify-between">
                             <div>
                                 <p class="text-red-800 text-sm font-medium">Total Keluar</p>
-                                <p class="text-2xl font-bold text-red-900">23 item</p>
+                                <p class="text-2xl font-bold text-red-900">{{ $laporanData['ringkasan_bulanan']['total_keluar'] ?? 0 }} item</p>
                             </div>
                             <i class="fas fa-arrow-up text-red-600 text-xl"></i>
                         </div>
@@ -281,7 +375,7 @@
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-blue-800 text-sm font-medium">Nilai Transaksi</p>
-                            <p class="text-2xl font-bold text-blue-900">Rp 2.4JT</p>
+                            <p class="text-2xl font-bold text-blue-900">{{ $laporanData['stats']['total_nilai']['value'] ?? 'Rp 0' }}</p>
                         </div>
                         <i class="fas fa-coins text-blue-600 text-xl"></i>
                     </div>
@@ -291,31 +385,17 @@
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-purple-800 text-sm font-medium">Rata-rata/hari</p>
-                            <p class="text-2xl font-bold text-purple-900">5 transaksi</p>
+                            <p class="text-2xl font-bold text-purple-900">
+                                @php
+                                    $totalTransaksi = $laporanData['stats']['total_transaksi']['value'] ?? 0;
+                                    $rataRata = $totalTransaksi > 0 ? round($totalTransaksi / 30, 1) : 0;
+                                @endphp
+                                {{ $rataRata }} transaksi
+                            </p>
                         </div>
                         <i class="fas fa-chart-line text-purple-600 text-xl"></i>
                     </div>
                 </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Quick Actions -->
-    <div class="bg-gradient-to-r from-blue-50 to-indigo-100 rounded-2xl shadow-lg p-8 border border-blue-200">
-        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between">
-            <div class="mb-4 lg:mb-0">
-                <h3 class="text-xl font-bold text-gray-900 mb-2">Butuh Laporan Lebih Detail?</h3>
-                <p class="text-gray-600">Generate laporan custom dengan kriteria yang lebih spesifik</p>
-            </div>
-            <div class="flex space-x-3">
-                <button class="bg-white text-blue-600 hover:bg-blue-50 font-semibold py-3 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 border border-blue-200">
-                    <i class="fas fa-cog mr-2"></i>
-                    Laporan Custom
-                </button>
-                <button class="bg-blue-600 text-white hover:bg-blue-700 font-semibold py-3 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105">
-                    <i class="fas fa-download mr-2"></i>
-                    Download Excel
-                </button>
             </div>
         </div>
     </div>
@@ -324,26 +404,11 @@
 <!-- JavaScript for Interactive Elements -->
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Date picker initialization (you can integrate with a date picker library)
-        const dateInputs = document.querySelectorAll('input[placeholder="dd/mm/yyyy"]');
+        // Date picker initialization
+        const dateInputs = document.querySelectorAll('input[type="date"]');
         dateInputs.forEach(input => {
             input.addEventListener('focus', function() {
-                this.type = 'date';
-            });
-
-            input.addEventListener('blur', function() {
-                if (!this.value) {
-                    this.type = 'text';
-                }
-            });
-        });
-
-        // Filter functionality
-        const filters = document.querySelectorAll('select');
-        filters.forEach(filter => {
-            filter.addEventListener('change', function(e) {
-                console.log('Filter changed:', e.target.value);
-                // Implement filter logic here
+                this.showPicker();
             });
         });
 
@@ -365,21 +430,9 @@
             });
         });
 
-        // Export functionality
-        document.querySelector('button:contains("Export PDF")').addEventListener('click', function() {
-            console.log('Exporting PDF...');
-            // Implement PDF export logic here
-        });
-
         // Print functionality
-        document.querySelector('button:contains("Print")').addEventListener('click', function() {
+        document.querySelector('button:contains("Print")')?.addEventListener('click', function() {
             window.print();
-        });
-
-        // Apply filter button
-        document.querySelector('button:contains("Terapkan Filter")').addEventListener('click', function() {
-            console.log('Applying filters...');
-            // Implement filter application logic here
         });
     });
 </script>
@@ -393,11 +446,14 @@
         .shadow-lg, .shadow-xl {
             box-shadow: none !important;
         }
-        button {
+        button, .flex.space-x-3 {
             display: none !important;
         }
         .hover\\:shadow-xl:hover {
             box-shadow: none !important;
+        }
+        nav {
+            display: none !important;
         }
     }
 </style>

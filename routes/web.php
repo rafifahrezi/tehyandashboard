@@ -7,6 +7,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ManajemenUserController;
 use App\Http\Controllers\TransaksiStokController;
+use App\Http\Controllers\ReportController;
 
 Route::get('/', function () {
     return view('auth.login');
@@ -46,7 +47,8 @@ Route::middleware(['auth', 'role:admin|owner'])->group(function () {
 
 // Owner-only routes
 Route::middleware(['auth', 'role:owner'])->group(function () {
-    Route::get('/laporan', [LaporanController::class, 'index'])->name('laporan');
+    Route::resource('reports', ReportController::class)->except(['generate']);
+    // Route::post('reports/generate', [ReportController::class, 'generate'])->name('reports.generate');
 });
 
 // Route::middleware(['auth', 'role:admin'])->group(function () {
@@ -57,7 +59,7 @@ Route::middleware(['auth', 'role:owner'])->group(function () {
 //     Route::get('/admin-manajemen-bahan/{id}/edit', [BahanController::class, 'edit'])->name('manajemen.bahan-admin.edit');
 //     Route::put('/admin-manajemen-bahan/{id}', [BahanController::class, 'update'])->name('manajemen.bahan-admin.update');
 //     Route::delete('/admin-manajemen-bahan/{id}', [BahanController::class, 'destroy'])->name('manajemen.bahan-admin.destroy');
-    
+
 //     Route::get('/admin-transaksi-stok', [TransaksiStokController::class, 'index'])->name('transaksi.stok-admin');
 //     Route::post('/admin-transaksi-stok', [TransaksiStokController::class, 'store'])->name('transaksi.stok-admin.store');
 //     Route::get('/admin-transaksi-stok/create', [TransaksiStokController::class, 'create'])->name('transaksi.stok-admin.create');

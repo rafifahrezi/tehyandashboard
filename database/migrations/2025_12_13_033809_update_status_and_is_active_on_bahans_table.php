@@ -12,17 +12,20 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('bahans', function (Blueprint $table) {
+            // HAPUS baris ini karena kolom status belum ada:
+            // $table->dropColumn('status');
 
-            $table->dropColumn('status');
+            // Ganti dengan: Tambah kolom status jika belum ada
+            if (!Schema::hasColumn('bahans', 'status')) {
+                $table->enum('status', ['aman', 'warning', 'habis', 'kritis'])
+                    ->default('aman')
+                    ->after('is_active');
+            }
 
-            $table->enum('status', ['aman', 'warning', 'habis', 'kritis'])
-                ->default('aman')
-                ->before('created_at');
-
-            // 2️⃣ Ubah is_active menjadi ENUM
+            // Install doctrine/dbal dulu untuk modify column:
+            // composer require doctrine/dbal
             $table->enum('is_active', ['active', 'inactive', 'archived'])
                 ->default('active')
-                ->before('created_at')
                 ->change();
         });
     }
@@ -33,20 +36,13 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('bahans', function (Blueprint $table) {
+            // Kembalikan is_active ke enum semula
+            $table->enum('is_active', ['aman', 'warning', 'habis', 'kritis'])
+                ->default('aman')
+                ->change();
 
-            // rollback is_active
-            $table->dropColumn('is_active');
-        });
-
-        Schema::table('bahans', function (Blueprint $table) {
-
-            // rollback ke boolean
-            $table->boolean('is_active')
-                ->default(true)
-                ->before('created_at');
-
-            // rollback status
-            $table->dropColumn('status');
+            // Hapus kolom status
+            $table->dropColumn(['status']);
         });
     }
 };

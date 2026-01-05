@@ -1,12 +1,12 @@
 @php
     use Illuminate\Support\Facades\Auth;
-    
+
     $currentRoute = request()->route()->getName();
     $user = Auth::user();
-    
+
     // Menu items berdasarkan role - Simplified dengan unified routes
     $menuItems = [];
-    
+
     // Menu untuk Admin & Owner (keduanya bisa akses)
     if ($user && ($user->hasRole('admin') || $user->hasRole('owner'))) {
         $menuItems = [
@@ -40,14 +40,14 @@
             ],
             [
                 'title' => 'Laporan',
-                'route' => 'laporan',
+                'route' => 'reports.index',
                 'icon' => 'fas fa-chart-bar',
                 'roles' => ['owner'], // Only owner can access
                 'badge' => null,
             ],
         ];
     }
-    
+
     // Low stock count (optional - implement your logic)
     $lowStockCount = \App\Models\Bahan::where('stok_sekarang', '<=', \DB::raw('min_stok'))->count();
 @endphp
@@ -56,7 +56,7 @@
 <aside id="sidebar"
     class="w-64 bg-white/80 backdrop-blur-xl border-r border-slate-200/60 sidebar-transition transform lg:translate-x-0 lg:static fixed inset-y-0 left-0 z-50 -translate-x-full">
     <div class="flex flex-col h-full">
-        
+
         <!-- Sidebar Header -->
         <div class="border-b border-slate-200/60 p-6">
             <div class="flex items-center gap-3">
@@ -89,12 +89,12 @@
                                     break;
                                 }
                             }
-                            
+
                             // Check if current route is active
-                            $isActive = $currentRoute === $item['route'] || 
+                            $isActive = $currentRoute === $item['route'] ||
                                        str_starts_with($currentRoute, $item['route'] . '.');
                         @endphp
-                        
+
                         @if ($hasAccess)
                             <a href="{{ route($item['route']) }}"
                                 class="group flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 mb-1

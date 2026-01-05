@@ -116,7 +116,7 @@ class Bahan extends Model
         });
     }
 
-    
+
     // Tambahkan method static untuk memudahkan akses dari view/controller
     public static function getSatuanOptions(): array
     {
