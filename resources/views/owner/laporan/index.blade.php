@@ -1,6 +1,6 @@
 @extends('layouts.master')
 
-@section('title', $laporanData['pageTitle'])
+@section('title', 'Manajemen Laporan')
 
 @section('content')
 <div class="space-y-6">
@@ -9,13 +9,13 @@
         <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between">
             <div class="mb-6 lg:mb-0">
                 <h1 class="text-3xl font-bold mb-2">Manajemen Laporan</h1>
-                <p class="text-blue-100 text-lg">Buat, kelola, dan lihat laporan transaksi stok</p>
+                <p class="text-blue-100 text-lg">Buat, kelola, dan filter laporan transaksi stok</p>
             </div>
 
             <div class="flex space-x-3">
                 <a href="{{ route('reports.create') }}" class="bg-white/20 hover:bg-white/30 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center group">
                     <i class="fas fa-plus mr-3 text-lg"></i>
-                    Simpan Laporan
+                    Buat Laporan Baru
                 </a>
                 <button class="bg-white text-blue-600 hover:bg-blue-50 font-semibold py-3 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center group" onclick="window.print()">
                     <i class="fas fa-print mr-3 text-lg"></i>
@@ -27,7 +27,7 @@
 
     <!-- Filter Section -->
     <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
-        <h2 class="text-xl font-bold text-gray-900 mb-6">Filter Laporan Real-time</h2>
+        <h2 class="text-xl font-bold text-gray-900 mb-6">Filter Laporan</h2>
         <form action="{{ route('reports.index') }}" method="GET">
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <!-- Tanggal Mulai -->
@@ -38,7 +38,7 @@
                         <input
                             type="date"
                             name="tanggal_mulai"
-                            value="{{ $filterParams['tanggal_mulai'] ?? now()->subDays(30)->format('Y-m-d') }}"
+                            value="{{ $filterParams['tanggal_mulai'] ?? '' }}"
                             class="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-gray-300"
                         >
                     </div>
@@ -52,7 +52,7 @@
                         <input
                             type="date"
                             name="tanggal_akhir"
-                            value="{{ $filterParams['tanggal_akhir'] ?? now()->format('Y-m-d') }}"
+                            value="{{ $filterParams['tanggal_akhir'] ?? '' }}"
                             class="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-gray-300"
                         >
                     </div>
@@ -65,8 +65,8 @@
                         <i class="fas fa-filter absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                         <select name="jenis_transaksi" class="w-full pl-12 pr-10 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white transition-all duration-200 hover:border-gray-300">
                             <option value="semua" {{ ($filterParams['jenis_transaksi'] ?? 'semua') == 'semua' ? 'selected' : '' }}>Semua</option>
-                            <option value="masuk" {{ ($filterParams['jenis_transaksi'] ?? 'semua') == 'masuk' ? 'selected' : '' }}>Masuk</option>
-                            <option value="keluar" {{ ($filterParams['jenis_transaksi'] ?? 'semua') == 'keluar' ? 'selected' : '' }}>Keluar</option>
+                            <option value="masuk" {{ ($filterParams['jenis_transaksi'] ?? '') == 'masuk' ? 'selected' : '' }}>Masuk</option>
+                            <option value="keluar" {{ ($filterParams['jenis_transaksi'] ?? '') == 'keluar' ? 'selected' : '' }}>Keluar</option>
                         </select>
                         <i class="fas fa-chevron-down absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                     </div>
@@ -93,43 +93,28 @@
             <!-- Filter Actions -->
             <div class="flex justify-end space-x-3 mt-6 pt-6 border-t border-gray-200">
                 <a href="{{ route('reports.index') }}" class="px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 font-semibold">
-                    Reset
+                    Reset Filter
                 </a>
                 <button type="submit" class="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-700 text-white rounded-xl hover:from-blue-700 hover:to-indigo-800 transition-all duration-200 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center">
-                    <i class="fas fa-chart-bar mr-2"></i>
+                    <i class="fas fa-filter mr-2"></i>
                     Terapkan Filter
                 </button>
             </div>
         </form>
     </div>
 
-    <!-- Stats Overview -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        @foreach($laporanData['stats'] as $key => $stat)
-        <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-gray-600 text-sm font-medium mb-2 capitalize">
-                        {{ str_replace('_', ' ', $key) }}
-                    </p>
-                    <p class="text-3xl font-bold text-gray-900 mb-1">{{ $stat['value'] }}</p>
-                    <p class="text-sm text-gray-500">
-                        {{ $stat['transaksi'] ?? $stat['description'] }}
-                    </p>
-                </div>
-                <div class="w-12 h-12 bg-gradient-to-br from-{{ $stat['color'] }}-500 to-{{ $stat['color'] }}-600 rounded-xl flex items-center justify-center text-white">
-                    <i class="{{ $stat['icon'] }} text-xl"></i>
-                </div>
-            </div>
-        </div>
-        @endforeach
-    </div>
-
     <!-- Tabel Laporan Tersimpan -->
     <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
         <div class="flex items-center justify-between mb-6">
             <h2 class="text-xl font-bold text-gray-900">Laporan Tersimpan</h2>
-            <span class="text-sm text-gray-500">{{ $reports->total() }} laporan</span>
+            <div class="flex items-center space-x-4">
+                <span class="text-sm text-gray-500">{{ $reports->total() }} laporan ditemukan</span>
+                @if(request()->anyFilled(['tanggal_mulai', 'tanggal_akhir', 'jenis_transaksi', 'bahan_id']))
+                <span class="px-3 py-1 bg-blue-100 text-blue-800 text-xs font-semibold rounded-full">
+                    Filter Aktif
+                </span>
+                @endif
+            </div>
         </div>
 
         @if($reports->count() > 0)
@@ -140,13 +125,15 @@
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama Laporan</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jenis</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Periode</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Transaksi</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Bahan</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
                     @foreach($reports as $report)
-                    <tr>
+                    <tr class="hover:bg-gray-50 transition-colors duration-150">
                         <td class="px-6 py-4">
                             <div class="font-medium text-gray-900">{{ $report->nama_laporan }}</div>
                             <div class="text-sm text-gray-500">Dibuat oleh {{ $report->user->name ?? 'User' }}</div>
@@ -172,25 +159,39 @@
                         </td>
                         <td class="px-6 py-4">
                             <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full
+                                {{ $report->jenis_transaksi == 'masuk' ? 'bg-green-100 text-green-800' :
+                                   ($report->jenis_transaksi == 'keluar' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800') }}">
+                                {{ ucfirst($report->jenis_transaksi) }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-500">
+                            {{ $report->bahan->nama_bahan ?? 'Semua Bahan' }}
+                        </td>
+                        <td class="px-6 py-4">
+                            <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full
                                 {{ $report->status == 'published' ? 'bg-green-100 text-green-800' :
                                    ($report->status == 'draft' ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-gray-800') }}">
                                 {{ ucfirst($report->status) }}
                             </span>
                         </td>
-                        <td class="px-6 py-4 text-sm font-medium space-x-2">
-                            <a href="{{ route('reports.show', $report) }}" class="text-blue-600 hover:text-blue-900" title="Lihat">
-                                <i class="fas fa-eye"></i>
-                            </a>
-                            <a href="{{ route('reports.edit', $report) }}" class="text-green-600 hover:text-green-900" title="Edit">
-                                <i class="fas fa-edit"></i>
-                            </a>
-                            <form action="{{ route('reports.destroy', $report) }}" method="POST" class="inline">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="text-red-600 hover:text-red-900" title="Hapus" onclick="return confirm('Hapus laporan ini?')">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </form>
+                        <td class="px-6 py-4">
+                            <div class="flex items-center space-x-3">
+                                <a href="{{ route('reports.show', $report) }}" class="text-blue-600 hover:text-blue-900 transition-colors duration-200 p-1 rounded hover:bg-blue-50" title="Lihat Detail">
+                                    <i class="fas fa-eye text-sm"></i>
+                                </a>
+                                @if($report->user_id == Auth::id())
+                                <a href="{{ route('reports.edit', $report) }}" class="text-green-600 hover:text-green-900 transition-colors duration-200 p-1 rounded hover:bg-green-50" title="Edit">
+                                    <i class="fas fa-edit text-sm"></i>
+                                </a>
+                                <form action="{{ route('reports.destroy', $report) }}" method="POST" class="inline">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="text-red-600 hover:text-red-900 transition-colors duration-200 p-1 rounded hover:bg-red-50" title="Hapus" onclick="return confirm('Apakah Anda yakin ingin menghapus laporan ini?')">
+                                        <i class="fas fa-trash text-sm"></i>
+                                    </button>
+                                </form>
+                                @endif
+                            </div>
                         </td>
                     </tr>
                     @endforeach
@@ -199,243 +200,26 @@
         </div>
 
         <!-- Pagination -->
-        <div class="mt-4">
+        <div class="mt-6">
             {{ $reports->links() }}
         </div>
         @else
-        <div class="text-center py-8 text-gray-500">
-            <i class="fas fa-file-alt text-4xl mb-4 text-gray-300"></i>
-            <p class="text-lg">Belum ada laporan yang disimpan.</p>
-            <a href="{{ route('reports.create') }}" class="mt-4 inline-block text-blue-600 hover:text-blue-800">
+        <div class="text-center py-12">
+            <i class="fas fa-file-alt text-5xl mb-4 text-gray-300"></i>
+            <p class="text-lg text-gray-500 mb-2">
+                @if(request()->anyFilled(['tanggal_mulai', 'tanggal_akhir', 'jenis_transaksi', 'bahan_id']))
+                    Tidak ada laporan yang sesuai dengan filter yang dipilih.
+                @else
+                    Belum ada laporan yang disimpan.
+                @endif
+            </p>
+            <a href="{{ route('reports.create') }}" class="mt-4 inline-flex items-center text-blue-600 hover:text-blue-800 font-medium">
                 <i class="fas fa-plus mr-2"></i>Buat Laporan Pertama Anda
             </a>
         </div>
         @endif
     </div>
-
-    <!-- Charts Section -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <!-- Tren Transaksi Harian -->
-        <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
-            <div class="flex items-center justify-between mb-6">
-                <div>
-                    <h3 class="text-xl font-bold text-gray-900">Tren Transaksi Harian</h3>
-                    <p class="text-gray-600 mt-1">{{ $laporanData['tren_harian']['periode'] }}</p>
-                </div>
-                <a href="#" class="text-blue-600 hover:text-blue-800 font-medium text-sm py-2 px-4 rounded-lg transition-all duration-200 hover:bg-blue-50">
-                    <i class="fas fa-expand mr-2"></i>
-                    Detail
-                </a>
-            </div>
-
-            <!-- Chart Container -->
-            <div class="h-64 relative">
-                <!-- Chart Bars -->
-                <div class="flex items-end justify-between h-48 space-x-1">
-                    @foreach($laporanData['tren_harian']['data'] as $day)
-                    <div class="flex flex-col items-center flex-1 group">
-                        <!-- Masuk Bar -->
-                        <div
-                            class="w-full bg-gradient-to-t from-green-500 to-green-400 rounded-t hover:from-green-600 hover:to-green-500 transition-all duration-300 cursor-pointer shadow-md mb-1"
-                            style="height: {{ max(10, ($day['masuk'] / max(1, max(array_column($laporanData['tren_harian']['data'], 'masuk')))) * 100) }}%"
-                            title="Masuk: {{ $day['masuk'] }}"
-                        ></div>
-                        <!-- Keluar Bar -->
-                        <div
-                            class="w-full bg-gradient-to-t from-red-500 to-red-400 rounded-t hover:from-red-600 hover:to-red-500 transition-all duration-300 cursor-pointer shadow-md"
-                            style="height: {{ max(10, ($day['keluar'] / max(1, max(array_column($laporanData['tren_harian']['data'], 'keluar')))) * 100) }}%"
-                            title="Keluar: {{ $day['keluar'] }}"
-                        ></div>
-                        <!-- Date Label -->
-                        <span class="text-xs text-gray-600 mt-2 font-medium">{{ $day['date'] }}</span>
-                    </div>
-                    @endforeach
-                </div>
-
-                <!-- Legend -->
-                <div class="flex justify-center space-x-6 mt-4">
-                    <div class="flex items-center">
-                        <div class="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
-                        <span class="text-xs text-gray-600">Stok Masuk</span>
-                    </div>
-                    <div class="flex items-center">
-                        <div class="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
-                        <span class="text-xs text-gray-600">Stok Keluar</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Top 5 Bahan Paling Aktif -->
-        <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
-            <div class="flex items-center justify-between mb-6">
-                <div>
-                    <h3 class="text-xl font-bold text-gray-900">{{ $laporanData['top_bahan']['title'] }}</h3>
-                    <p class="text-gray-600 mt-1">{{ $laporanData['top_bahan']['subtitle'] }}</p>
-                </div>
-                <a href="#" class="text-blue-600 hover:text-blue-800 font-medium text-sm py-2 px-4 rounded-lg transition-all duration-200 hover:bg-blue-50">
-                    <i class="fas fa-list mr-2"></i>
-                    Lihat Semua
-                </a>
-            </div>
-
-            <div class="space-y-4">
-                @foreach($laporanData['top_bahan']['data'] as $index => $bahan)
-                <div class="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-colors duration-200">
-                    <div class="flex items-center space-x-3">
-                        <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center text-white text-sm font-bold">
-                            {{ $index + 1 }}
-                        </div>
-                        <div>
-                            <p class="font-semibold text-gray-900">{{ $bahan['name'] }}</p>
-                            <p class="text-sm text-gray-500">{{ $bahan['transaksi'] }} transaksi</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center space-x-3">
-                        <div class="w-24 bg-gray-200 rounded-full h-2">
-                            <div
-                                class="bg-gradient-to-r from-blue-500 to-indigo-600 h-2 rounded-full"
-                                style="width: {{ $bahan['persentase'] }}%"
-                            ></div>
-                        </div>
-                        <span class="text-sm font-semibold text-gray-700 w-8">{{ $bahan['persentase'] }}%</span>
-                    </div>
-                </div>
-                @endforeach
-            </div>
-        </div>
-    </div>
-
-    <!-- Additional Sections -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <!-- Aktivitas Pegawai -->
-        <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
-            <div class="flex items-center justify-between mb-6">
-                <h3 class="text-xl font-bold text-gray-900">{{ $laporanData['rekap_pegawai']['title'] }}</h3>
-                <a href="#" class="text-blue-600 hover:text-blue-800 font-medium text-sm py-2 px-4 rounded-lg transition-all duration-200 hover:bg-blue-50">
-                    <i class="fas fa-users mr-2"></i>
-                    Semua Pegawai
-                </a>
-            </div>
-
-            <div class="space-y-4">
-                @foreach($laporanData['rekap_pegawai']['data'] as $pegawai)
-                <div class="flex items-center justify-between p-4 rounded-xl border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all duration-200">
-                    <div class="flex items-center space-x-3">
-                        <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center text-white font-bold">
-                            {{ substr($pegawai['name'], 0, 1) }}
-                        </div>
-                        <div>
-                            <p class="font-semibold text-gray-900">{{ $pegawai['name'] }}</p>
-                            <p class="text-sm text-gray-500">{{ $pegawai['role'] }}</p>
-                        </div>
-                    </div>
-                    <div class="text-right">
-                        <p class="text-lg font-bold text-gray-900">{{ $pegawai['transaksi'] }}</p>
-                        <p class="text-sm text-gray-500">transaksi</p>
-                    </div>
-                </div>
-                @endforeach
-            </div>
-        </div>
-
-        <!-- Ringkasan Bulanan -->
-        <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
-            <div class="flex items-center justify-between mb-6">
-                <h3 class="text-xl font-bold text-gray-900">Ringkasan Bulan Ini</h3>
-                <a href="#" class="text-blue-600 hover:text-blue-800 font-medium text-sm py-2 px-4 rounded-lg transition-all duration-200 hover:bg-blue-50">
-                    <i class="fas fa-calendar mr-2"></i>
-                    Detail
-                </a>
-            </div>
-
-            <div class="space-y-4">
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="bg-green-50 rounded-xl p-4 border border-green-200">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-green-800 text-sm font-medium">Total Masuk</p>
-                                <p class="text-2xl font-bold text-green-900">{{ $laporanData['ringkasan_bulanan']['total_masuk'] ?? 0 }} item</p>
-                            </div>
-                            <i class="fas fa-arrow-down text-green-600 text-xl"></i>
-                        </div>
-                    </div>
-                    <div class="bg-red-50 rounded-xl p-4 border border-red-200">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-red-800 text-sm font-medium">Total Keluar</p>
-                                <p class="text-2xl font-bold text-red-900">{{ $laporanData['ringkasan_bulanan']['total_keluar'] ?? 0 }} item</p>
-                            </div>
-                            <i class="fas fa-arrow-up text-red-600 text-xl"></i>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="bg-blue-50 rounded-xl p-4 border border-blue-200">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-blue-800 text-sm font-medium">Nilai Transaksi</p>
-                            <p class="text-2xl font-bold text-blue-900">{{ $laporanData['stats']['total_nilai']['value'] ?? 'Rp 0' }}</p>
-                        </div>
-                        <i class="fas fa-coins text-blue-600 text-xl"></i>
-                    </div>
-                </div>
-
-                <div class="bg-purple-50 rounded-xl p-4 border border-purple-200">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-purple-800 text-sm font-medium">Rata-rata/hari</p>
-                            <p class="text-2xl font-bold text-purple-900">
-                                @php
-                                    $totalTransaksi = $laporanData['stats']['total_transaksi']['value'] ?? 0;
-                                    $rataRata = $totalTransaksi > 0 ? round($totalTransaksi / 30, 1) : 0;
-                                @endphp
-                                {{ $rataRata }} transaksi
-                            </p>
-                        </div>
-                        <i class="fas fa-chart-line text-purple-600 text-xl"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 </div>
-
-<!-- JavaScript for Interactive Elements -->
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Date picker initialization
-        const dateInputs = document.querySelectorAll('input[type="date"]');
-        dateInputs.forEach(input => {
-            input.addEventListener('focus', function() {
-                this.showPicker();
-            });
-        });
-
-        // Chart bar hover effects
-        const chartBars = document.querySelectorAll('.group');
-        chartBars.forEach(bar => {
-            bar.addEventListener('mouseenter', function() {
-                const bars = this.querySelectorAll('div[class*="bg-gradient"]');
-                bars.forEach(b => {
-                    b.style.transform = 'scale(1.1)';
-                });
-            });
-
-            bar.addEventListener('mouseleave', function() {
-                const bars = this.querySelectorAll('div[class*="bg-gradient"]');
-                bars.forEach(b => {
-                    b.style.transform = 'scale(1)';
-                });
-            });
-        });
-
-        // Print functionality
-        document.querySelector('button:contains("Print")')?.addEventListener('click', function() {
-            window.print();
-        });
-    });
-</script>
 
 <style>
     @media print {
@@ -446,14 +230,14 @@
         .shadow-lg, .shadow-xl {
             box-shadow: none !important;
         }
-        button, .flex.space-x-3 {
+        button, .flex.space-x-3, .flex.justify-end {
             display: none !important;
-        }
-        .hover\\:shadow-xl:hover {
-            box-shadow: none !important;
         }
         nav {
             display: none !important;
+        }
+        .hover\:bg-gray-50:hover {
+            background-color: transparent !important;
         }
     }
 </style>

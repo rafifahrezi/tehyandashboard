@@ -1,194 +1,52 @@
 <?php
-// app/Http/Controllers/ReportController.php
+// app/Http\Controllers/ReportController.php
 
 namespace App\Http\Controllers;
 
 use App\Models\Report;
 use App\Models\Bahan;
-use App\Models\Category;
-use App\Models\StockMove;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Carbon\Carbon;
 
 class ReportController extends Controller
 {
-    // Method untuk generate data laporan
-    private function generateReportData($params = [])
-    {
-        // Default values
-        $startDate = $params['tanggal_mulai'] ?? now()->subDays(30)->format('Y-m-d');
-        $endDate = $params['tanggal_akhir'] ?? now()->format('Y-m-d');
-        $jenisTransaksi = $params['jenis_transaksi'] ?? 'semua';
-        $bahanId = $params['bahan_id'] ?? null;
-
-        // Query Stock Moves
-        $query = StockMove::with(['bahan'])
-            ->whereBetween('created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59']);
-
-        if ($jenisTransaksi !== 'semua') {
-            $query->where('move_type', $jenisTransaksi);
-        }
-
-        if ($bahanId) {
-            $query->where('bahan_id', $bahanId);
-        }
-
-        $stockMoves = $query->get();
-
-        // Hitung stats
-        $totalTransaksi = $stockMoves->count();
-        $totalMasuk = $stockMoves->where('move_type', 'in')->count();
-        $totalKeluar = $stockMoves->where('move_type', 'out')->count();
-
-        // Hitung nilai transaksi
-        $totalNilai = 0;
-        foreach ($stockMoves as $move) {
-            $harga = $move->bahan->harga ?? 0;
-            $totalNilai += $move->qty * $harga;
-        }
-
-        // Data tren harian (7 hari terakhir)
-        $trenHarian = [];
-        for ($i = 6; $i >= 0; $i--) {
-            $date = Carbon::parse($endDate)->subDays($i)->format('Y-m-d');
-            $masuk = StockMove::where('move_type', 'in')
-                ->whereDate('created_at', $date)
-                ->when($bahanId, function ($q) use ($bahanId) {
-                    $q->where('bahan_id', $bahanId);
-                })
-                ->count();
-            $keluar = StockMove::where('move_type', 'out')
-                ->whereDate('created_at', $date)
-                ->when($bahanId, function ($q) use ($bahanId) {
-                    $q->where('bahan_id', $bahanId);
-                })
-                ->count();
-
-            $trenHarian[] = [
-                'date' => Carbon::parse($date)->format('d/m'),
-                'masuk' => $masuk,
-                'keluar' => $keluar
-            ];
-        }
-
-        // Top 5 bahan paling aktif
-        $topBahan = StockMove::select('bahan_id')
-            ->selectRaw('COUNT(*) as total')
-            ->whereBetween('created_at', [$startDate, $endDate])
-            ->when($jenisTransaksi !== 'semua', function ($q) use ($jenisTransaksi) {
-                $q->where('move_type', $jenisTransaksi);
-            })
-            ->groupBy('bahan_id')
-            ->orderByDesc('total')
-            ->limit(5)
-            ->get()
-            ->map(function ($item) {
-                $bahan = Bahan::find($item->bahan_id);
-                return [
-                    'name' => $bahan ? $bahan->nama_bahan : 'Unknown',
-                    'transaksi' => $item->total,
-                    'persentase' => 0
-                ];
-            });
-
-        // Hitung persentase
-        $totalTop = $topBahan->sum('transaksi');
-        $topBahan = $topBahan->map(function ($item) use ($totalTop) {
-            $item['persentase'] = $totalTop > 0 ? round(($item['transaksi'] / $totalTop) * 100, 1) : 0;
-            return $item;
-        });
-
-        // Data rekap pegawai (contoh sederhana)
-        $rekapPegawai = [
-            [
-                'name' => 'Admin',
-                'role' => 'Administrator',
-                'transaksi' => rand(20, 100)
-            ],
-            [
-                'name' => 'Manager',
-                'role' => 'Manager Gudang',
-                'transaksi' => rand(10, 50)
-            ]
-        ];
-
-        return [
-            'pageTitle' => 'Laporan Transaksi Stok',
-            'pageDescription' => 'Analisis pergerakan stok periode ' .
-                Carbon::parse($startDate)->format('d/m/Y') . ' - ' .
-                Carbon::parse($endDate)->format('d/m/Y'),
-            'filters' => [
-                'jenis_transaksi' => ['Semua', 'Masuk', 'Keluar'],
-                'bahan_baku' => Bahan::pluck('nama_bahan')->toArray()
-            ],
-            'stats' => [
-                'total_transaksi' => [
-                    'value' => $totalTransaksi,
-                    'transaksi' => 'Total transaksi',
-                    'color' => 'blue',
-                    'icon' => 'fas fa-exchange-alt'
-                ],
-                'stok_masuk' => [
-                    'value' => $totalMasuk,
-                    'transaksi' => 'Transaksi masuk',
-                    'color' => 'green',
-                    'icon' => 'fas fa-arrow-down'
-                ],
-                'stok_keluar' => [
-                    'value' => $totalKeluar,
-                    'transaksi' => 'Transaksi keluar',
-                    'color' => 'red',
-                    'icon' => 'fas fa-arrow-up'
-                ],
-                'total_nilai' => [
-                    'value' => 'Rp ' . number_format($totalNilai, 0, ',', '.'),
-                    'description' => 'Total nilai transaksi',
-                    'color' => 'purple',
-                    'icon' => 'fas fa-coins'
-                ]
-            ],
-            'tren_harian' => [
-                'periode' => '7 Hari Terakhir',
-                'data' => $trenHarian
-            ],
-            'top_bahan' => [
-                'title' => 'Top 5 Bahan Paling Aktif',
-                'subtitle' => 'Berdasarkan jumlah transaksi',
-                'data' => $topBahan
-            ],
-            'rekap_pegawai' => [
-                'title' => 'Aktivitas Pegawai',
-                'data' => $rekapPegawai
-            ],
-            'ringkasan_bulanan' => [
-                'total_masuk' => $totalMasuk,
-                'total_keluar' => $totalKeluar
-            ]
-        ];
-    }
-
-    // Display a listing of reports
+    // Display a listing of reports dengan filter
     public function index(Request $request)
     {
-        // Ambil parameter filter dari request
-        $filterParams = $request->only(['tanggal_mulai', 'tanggal_akhir', 'jenis_transaksi', 'bahan_id']);
+        // Query dasar
+        $query = Report::with(['user', 'bahan'])
+            ->where(function($q) {
+                $q->where('user_id', Auth::id())
+                  ->orWhere('status', 'published');
+            });
 
-        // Generate laporan data berdasarkan filter
-        if (!empty(array_filter($filterParams))) {
-            $laporanData = $this->generateReportData($filterParams);
-        } else {
-            $laporanData = $this->generateReportData();
+        // Filter berdasarkan input
+        if ($request->filled('tanggal_mulai')) {
+            $query->whereDate('tanggal_mulai', '>=', $request->tanggal_mulai);
         }
 
-        $reports = Report::where('user_id', Auth::id())
-            ->orWhere('status', 'published')
-            ->latest()
-            ->paginate(10);
+        if ($request->filled('tanggal_akhir')) {
+            $query->whereDate('tanggal_akhir', '<=', $request->tanggal_akhir);
+        }
 
+        if ($request->filled('jenis_transaksi') && $request->jenis_transaksi != 'semua') {
+            $query->where('jenis_transaksi', $request->jenis_transaksi);
+        }
+
+        if ($request->filled('bahan_id')) {
+            $query->where('bahan_id', $request->bahan_id);
+        }
+
+        // Pagination
+        $reports = $query->latest()->paginate(10);
+
+        // Ambil semua bahan untuk dropdown filter
         $bahans = Bahan::all();
 
-        return view('owner.laporan.index', compact('reports', 'laporanData', 'bahans', 'filterParams'));
+        // Ambil parameter filter untuk mengisi form
+        $filterParams = $request->only(['tanggal_mulai', 'tanggal_akhir', 'jenis_transaksi', 'bahan_id']);
+
+        return view('owner.laporan.index', compact('reports', 'bahans', 'filterParams'));
     }
 
     // Show form for creating new report
@@ -243,21 +101,22 @@ class ReportController extends Controller
     // Display the specified report
     public function show(Report $report)
     {
-        $params = [
-            'tanggal_mulai' => $report->tanggal_mulai,
-            'tanggal_akhir' => $report->tanggal_akhir,
-            'jenis_transaksi' => $report->jenis_transaksi,
-            'bahan_id' => $report->bahan_id,
-        ];
+        // Cek apakah user berhak melihat laporan ini
+        if ($report->user_id !== Auth::id() && $report->status !== 'published') {
+            abort(403, 'Anda tidak memiliki akses ke laporan ini.');
+        }
 
-        $laporanData = $this->generateReportData($params);
-
-        return view('owner.laporan.show', compact('report', 'laporanData'));
+        return view('owner.laporan.show', compact('report'));
     }
 
     // Show form for editing report
     public function edit(Report $report)
     {
+        // Cek apakah user berhak mengedit laporan ini
+        if ($report->user_id !== Auth::id()) {
+            abort(403, 'Anda hanya dapat mengedit laporan yang Anda buat.');
+        }
+
         $bahans = Bahan::all();
         return view('owner.laporan.edit', compact('report', 'bahans'));
     }
@@ -265,6 +124,11 @@ class ReportController extends Controller
     // Update the specified report
     public function update(Request $request, Report $report)
     {
+        // Cek apakah user berhak mengupdate laporan ini
+        if ($report->user_id !== Auth::id()) {
+            abort(403, 'Anda hanya dapat mengupdate laporan yang Anda buat.');
+        }
+
         $validated = $request->validate([
             'nama_laporan' => 'required|string|max:255',
             'jenis_laporan' => 'required|in:harian,bulanan,tahunan,custom',
@@ -306,6 +170,11 @@ class ReportController extends Controller
     // Remove the specified report
     public function destroy(Report $report)
     {
+        // Cek apakah user berhak menghapus laporan ini
+        if ($report->user_id !== Auth::id()) {
+            abort(403, 'Anda hanya dapat menghapus laporan yang Anda buat.');
+        }
+
         $report->delete();
 
         return redirect()->route('reports.index')

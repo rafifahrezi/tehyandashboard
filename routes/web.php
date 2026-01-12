@@ -15,7 +15,7 @@ Route::get('/', function () {
 
 // Admin & Owner bisa akses route yang sama
 Route::middleware(['auth', 'role:admin|owner'])->group(function () {
-    Route::get('/admin-panel', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/panel', [DashboardController::class, 'index'])->name('dashboard');
 
     // Manajemen Bahan Baku
     Route::prefix('manajemen-bahan')->name('manajemen.bahan.')->group(function () {
