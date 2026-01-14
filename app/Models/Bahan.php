@@ -41,7 +41,6 @@ class Bahan extends Model
         'tanggal_masuk',
         'tanggal_kadaluarsa',
         'is_active'
-        // ❌ status TIDAK di-fill manual
     ];
 
     protected $casts = [

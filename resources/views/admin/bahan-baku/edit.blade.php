@@ -35,143 +35,164 @@
         @endif
 
         <form action="{{ route('manajemen.bahan.update', $bahan->id) }}" method="POST"
-            class="bg-white rounded-xl border border-gray-100 shadow-lg p-8 space-y-6">
-            @csrf
-            @method('PUT')
-            <div class="grid md:grid-cols-2 gap-6">
-                {{-- Kolom Kiri --}}
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
-                            Nama Bahan <span class="text-red-500">*</span>
-                        </label>
-                        <input name="nama_bahan" value="{{ old('nama_bahan', $bahan->nama_bahan) }}"
-                            placeholder="Masukkan nama bahan" required
-                            class="w-full rounded-lg border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200">
-                    </div>
+    class="bg-white rounded-xl border border-gray-100 shadow-lg p-8 space-y-6">
 
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
-                            Kategori <span class="text-red-500">*</span>
-                        </label>
-                        <select name="category_id" required
-                            class="w-full rounded-lg border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200">
-                            <option value="">Pilih Kategori</option>
-                            @foreach ($categories as $category)
-                                <option value="{{ $category->id }}"
-                                    {{ old('category_id', $bahan->category_id) == $category->id ? 'selected' : '' }}>
-                                    {{ $category->nama }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
+    @csrf
+    @method('PUT')
 
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">
-                                Stok Awal <span class="text-red-500">*</span>
-                            </label>
-                            <input name="stok_sekarang" type="number" value="{{ old('stok_sekarang', $bahan->stok_sekarang) }}" step="0.01"
-                                placeholder="0" required min="0" disabled
-                                class="w-full rounded-lg border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">
-                                Stok Minimal <span class="text-red-500">*</span>
-                            </label>
-                            <input name="min_stok" type="number" value="{{ old('min_stok', $bahan->min_stok) }}"
-                                step="0.01" placeholder="0" required min="0"
-                                class="w-full rounded-lg border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200">
-                        </div>
-                    </div>
+    <div class="grid md:grid-cols-2 gap-6">
+        {{-- Kolom Kiri --}}
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                    Nama Bahan <span class="text-red-500">*</span>
+                </label>
+                <input name="nama_bahan" 
+                    value="{{ old('nama_bahan', $bahan->nama_bahan) }}"
+                    placeholder="Masukkan nama bahan" 
+                    required
+                    class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                    Kategori <span class="text-red-500">*</span>
+                </label>
+                <select name="category_id" required
+                    class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <option value="">Pilih Kategori</option>
+                    @foreach ($categories as $category)
+                        <option value="{{ $category->id }}"
+                            {{ old('category_id', $bahan->category_id) == $category->id ? 'selected' : '' }}>
+                            {{ $category->nama }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Stok Saat Ini
+                    </label>
+                    <input type="number" 
+                        value="{{ $bahan->stok_sekarang }}" 
+                        disabled
+                        class="w-full px-4 py-2 rounded-lg border border-gray-300 bg-gray-100">
                 </div>
 
-                {{-- Kolom Kanan --}}
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
-                            Harga Bahan <span class="text-red-500">*</span>
-                        </label>
-                        <input name="harga" type="number" value="{{ old('harga', $bahan->harga) }}" step="0.01"
-                            placeholder="Masukkan harga" required
-                            class="w-full rounded-lg border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200">
-                    </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Stok Minimal <span class="text-red-500">*</span>
+                    </label>
+                    <input name="min_stok" 
+                        type="number" 
+                        value="{{ old('min_stok', $bahan->min_stok) }}"
+                        step="0.01" 
+                        required 
+                        min="0"
+                        class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                </div>
+            </div>
+        </div>
 
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
-                            Supplier <span class="text-red-500">*</span>
-                        </label>
-                        <input name="supplier" value="{{ old('supplier', $bahan->supplier) }}"
-                            placeholder="Masukkan nama Supplier/Toko" required
-                            class="w-full rounded-lg border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200">
-                    </div>
+        {{-- Kolom Kanan --}}
+        <div class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                    Harga <span class="text-red-500">*</span>
+                </label>
+                <input name="harga" 
+                    type="number" 
+                    value="{{ old('harga', $bahan->harga) }}" 
+                    step="0.01"
+                    required
+                    class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+            </div>
 
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">
-                                Tanggal Masuk
-                            </label>
-                            <input name="tanggal_masuk" type="date"
-                                value="{{ old('tanggal_masuk', $bahan->tanggal_masuk ? \Carbon\Carbon::parse($bahan->tanggal_masuk)->format('Y-m-d') : '') }}"
-                                class="w-full rounded-lg border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">
-                                Tanggal Kadaluarsa
-                            </label>
-                            <input name="tanggal_kadaluarsa" type="date"
-                                value="{{ old('tanggal_kadaluarsa', $bahan->tanggal_kadaluarsa ? \Carbon\Carbon::parse($bahan->tanggal_kadaluarsa)->format('Y-m-d') : '') }}"
-                                class="w-full rounded-lg border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200">
-                        </div>
-                    </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                    Supplier <span class="text-red-500">*</span>
+                </label>
+                <input name="supplier" 
+                    value="{{ old('supplier', $bahan->supplier) }}"
+                    required
+                    class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+            </div>
 
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
-                            Satuan <span class="text-red-500">*</span>
-                        </label>
-                        <select name="satuan" required class="...">
-                            @foreach ($satuanOptions as $value => $label)
-                                <option value="{{ $value }}"
-                                    {{ old('satuan', $bahan->satuan) == $value ? 'selected' : '' }}>
-                                    {{ $label }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Tanggal Masuk
+                    </label>
+                    <input name="tanggal_masuk" 
+                        type="date"
+                        value="{{ old('tanggal_masuk', $bahan->tanggal_masuk ? \Carbon\Carbon::parse($bahan->tanggal_masuk)->format('Y-m-d') : '') }}"
+                        class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                </div>
 
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
-                            Status Bahan
-                        </label>
-                        <div class="flex space-x-4">
-                            <label class="inline-flex items-center">
-                                <input type="radio" name="status" value="aktif"
-                                    {{ old('is_active') === 'aktif' || (old('status') === null && $bahan->status === 'aktif') ? 'checked' : '' }}
-                                    class="form-radio text-blue-600">
-                                <span class="ml-2">Aktif</span>
-                            </label>
-                            <label class="inline-flex items-center">
-                                <input type="radio" name="status" value="nonaktif"
-                                    {{ old('status') === 'nonaktif' || (old('status') === null && $bahan->status === 'nonaktif') ? 'checked' : '' }}
-                                    class="form-radio text-red-600">
-                                <span class="ml-2">Non-Aktif</span>
-                            </label>
-                        </div>
-                    </div>
-
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Tanggal Kadaluarsa
+                    </label>
+                    <input name="tanggal_kadaluarsa" 
+                        type="date"
+                        value="{{ old('tanggal_kadaluarsa', $bahan->tanggal_kadaluarsa ? \Carbon\Carbon::parse($bahan->tanggal_kadaluarsa)->format('Y-m-d') : '') }}"
+                        class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                 </div>
             </div>
 
-            <div class="flex justify-end space-x-4 mt-8">
-                <a href="{{ route('manajemen.bahan.index') }}"
-                    class="px-6 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition duration-200 font-medium">
-                    Batal
-                </a>
-                <button type="submit"
-                    class="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-200 font-medium">
-                    Simpan Perubahan
-                </button>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                    Satuan <span class="text-red-500">*</span>
+                </label>
+                <select name="satuan" required
+                    class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    @foreach ($satuanOptions as $value => $label)
+                        <option value="{{ $value }}"
+                            {{ old('satuan', $bahan->satuan) == $value ? 'selected' : '' }}>
+                            {{ $label }}
+                        </option>
+                    @endforeach
+                </select>
             </div>
-        </form>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                    Status Bahan <span class="text-red-500">*</span>
+                </label>
+                <div class="flex space-x-6">
+                    <label class="inline-flex items-center">
+                        <input type="radio" 
+                            name="status" 
+                            value="aktif"
+                            {{ old('status', $bahan->status) === 'aktif' ? 'checked' : '' }}
+                            class="form-radio text-blue-600">
+                        <span class="ml-2 text-gray-700">Aktif</span>
+                    </label>
+                    <label class="inline-flex items-center">
+                        <input type="radio" 
+                            name="status" 
+                            value="nonaktif"
+                            {{ old('status', $bahan->status) === 'nonaktif' ? 'checked' : '' }}
+                            class="form-radio text-red-600">
+                        <span class="ml-2 text-gray-700">Non-Aktif</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="flex justify-end space-x-4 mt-8 border-t pt-6">
+        <a href="{{ route('manajemen.bahan.index') }}"
+            class="px-6 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition font-medium">
+            Batal
+        </a>
+        <button type="submit"
+            class="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium">
+            Simpan Perubahan
+        </button>
+    </div>
+</form>
     </div>
 @endsection

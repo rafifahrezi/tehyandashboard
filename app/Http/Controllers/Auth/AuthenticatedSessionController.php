@@ -28,11 +28,11 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        if ($request->user()->hasRole('admin')) {
-            return redirect()->intended(route('admin.panel')); // Ganti ke rute admin yang sesuai
-        } elseif ($request->user()->hasRole('owner')) {
-            return redirect()->intended(route('owner.panel')); // Ganti ke rute owner yang sesuai
+        if ($request->user()->hasRole(['admin', 'owner'])) {
+            return redirect()->intended(route('dashboard'));
         }
+
+        return redirect()->intended('/');
     }
 
     /**

@@ -49,7 +49,7 @@
                     <p class="text-center text-gray-500 text-sm">
                         &copy; {{ date('Y') }} {{ config('app.name', 'Dashboard Administrator') }}
                         <span class="mx-2">|</span>
-                        Versi {{ config('app.version', '1.0.0') }}
+                        Dashboard Tehyan
                     </p>
                 </div>
             </footer>
