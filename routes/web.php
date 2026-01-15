@@ -11,7 +11,7 @@ use App\Http\Controllers\ReportController;
 
 Route::get('/', function () {
     return view('auth.login');
-});
+})->name('login');
 
 // Admin & Owner bisa akses route yang sama
 Route::middleware(['auth', 'role:admin|owner'])->group(function () {
