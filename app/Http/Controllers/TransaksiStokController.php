@@ -99,7 +99,7 @@ class TransaksiStokController extends Controller
                 ];
 
             default:
-                return null;
+                 return null;
         }
     }
 

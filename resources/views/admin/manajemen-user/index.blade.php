@@ -112,10 +112,13 @@
                                 </div>
 
                                 <div class="pt-4 border-t border-gray-200 flex justify-between items-center">
-                                    <a href="{{ route('manajemen.user.edit', $user) }}"
-                                        class="text-blue-600 hover:text-blue-800 font-medium text-sm flex items-center gap-1">
-                                        <i class="fas fa-edit"></i> Edit
-                                    </a>
+                                    
+                                    @can('update', $user)
+                                        <a href="{{ route('manajemen.user.edit', $user) }}"
+                                            class="text-blue-600 hover:text-blue-800 font-medium text-sm flex items-center gap-1">
+                                            <i class="fas fa-edit"></i> Edit
+                                        </a>
+                                    @endcan
 
                                     <div class="flex items-center gap-3">
                                         @if ($user->telp)
@@ -259,11 +262,11 @@
         });
 
         document.addEventListener('DOMContentLoaded', () => {
-        const notification = @json(session('notification'));
-        if (notification) {
-            Alpine.store('snackbar').show(notification);
-        }
-    });
+            const notification = @json(session('notification'));
+            if (notification) {
+                Alpine.store('snackbar').show(notification);
+            }
+        });
 
         // Global helper to open modal
         function openDeleteModal(userId, userName) {

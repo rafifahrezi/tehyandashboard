@@ -22,39 +22,39 @@ class BahanController extends Controller
      * Display a listing of the resource.
      */
     public function index()
-{
-    // Ambil semua bahan dengan relasi category
-    $bahans = Bahan::with('category')
-        ->orderBy('created_at', 'desc')
-        ->get()
-        ->map(function ($bahan) {
-            return [
-                'id' => $bahan->id,
-                'kode_bahan' => $bahan->kode_bahan,
-                'nama_bahan' => $bahan->nama_bahan,
-                'category_id' => $bahan->category_id,
-                'category_name' => $bahan->category->nama ?? 'Tidak Berkategori',
-                'satuan' => $bahan->satuan,
-                'harga' => number_format($bahan->harga, 0, ',', '.'),
-                'supplier' => $bahan->supplier,
-                'stok_sekarang' => $bahan->stok_sekarang,
-                'min_stok' => $bahan->min_stok,
-                'status' => $bahan->status,
-                'tanggal_masuk' => Carbon::parse($bahan->tanggal_masuk)->format('d M Y'),
-                'tanggal_kadaluarsa' => Carbon::parse($bahan->tanggal_kadaluarsa)->format('d M Y'),
-            ];
-        });
+    {
+        // Ambil semua bahan dengan relasi category
+        $bahans = Bahan::with('category')
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function ($bahan) {
+                return [
+                    'id' => $bahan->id,
+                    'kode_bahan' => $bahan->kode_bahan,
+                    'nama_bahan' => $bahan->nama_bahan,
+                    'category_id' => $bahan->category_id,
+                    'category_name' => $bahan->category->nama ?? 'Tidak Berkategori',
+                    'satuan' => $bahan->satuan,
+                    'harga' => number_format($bahan->harga, 0, ',', '.'),
+                    'supplier' => $bahan->supplier,
+                    'stok_sekarang' => $bahan->stok_sekarang,
+                    'min_stok' => $bahan->min_stok,
+                    'status' => $bahan->status,
+                    'tanggal_masuk' => Carbon::parse($bahan->tanggal_masuk)->format('d M Y'),
+                    'tanggal_kadaluarsa' => Carbon::parse($bahan->tanggal_kadaluarsa)->format('d M Y'),
+                ];
+            });
 
-    // Ambil semua kategori
-    $categories = Category::all();
+        // Ambil semua kategori
+        $categories = Category::all();
 
-    return view('admin.bahan-baku.index', [
-        'materials' => $bahans,
-        'categories' => $categories,
-        'pageTitle' => 'Manajemen Bahan Baku',
-        'pageDescription' => 'Kelola dan pantau stok bahan baku Anda',
-    ]);
-}
+        return view('admin.bahan-baku.index', [
+            'materials' => $bahans,
+            'categories' => $categories,
+            'pageTitle' => 'Manajemen Bahan Baku',
+            'pageDescription' => 'Kelola dan pantau stok bahan baku Anda',
+        ]);
+    }
 
 
     /**
@@ -122,28 +122,24 @@ class BahanController extends Controller
                     'is_active'        => $request->is_active ?? true,
                 ]);
             });
+            return redirect()->route('manajemen.bahan.index')
+                ->with('toast', $this->createToastResponse('success', 'Berhasil!', 'Data bahan baku berhasil ditambah.', self::SUCCESS_DURATION));
+        } catch (\Throwable $e) {
+            // Roll back the database transaction
+            DB::rollBack();
 
-            return redirect()
-                ->route('manajemen.bahan.index')
-                ->with('notification', [
-                    'type'     => 'success',
-                    'title'    => 'Berhasil!',
-                    'message'  => 'Bahan baku berhasil ditambahkan.',
-                    'duration' => 5000
-                ]);
-        } catch (\Exception $e) {
-            Log::error('Error creating bahan: ' . $e->getMessage(), [
-                'trace' => $e->getTraceAsString()
+            // Log the error
+            Log::error('Error updating bahan', [
+                'id' => $id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'user_id' => auth()->id(),
             ]);
 
-            return back()
+            // Redirect back to the previous page with an error toast message
+            return redirect()->back()
                 ->withInput()
-                ->with('notification', [
-                    'type'     => 'error',
-                    'title'    => 'Gagal!',
-                    'message'  => 'Terjadi kesalahan sistem. Silakan coba lagi.',
-                    'duration' => 8000
-                ]);
+                ->with('toast', $this->createToastResponse('error', self::ERROR_TITLE, 'Terjadi kesalahan saat menambah data.', self::TOAST_DURATION));
         }
     }
 
@@ -275,7 +271,6 @@ class BahanController extends Controller
         return $prefix . str_pad($number, 3, '0', STR_PAD_LEFT);
     }
 
-    
     /* Validate Data Bahan */
     private function validateBahanData(Request $request)
     {
