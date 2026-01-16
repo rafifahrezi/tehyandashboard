@@ -43,12 +43,14 @@ Route::middleware(['auth', 'role:admin|owner'])->group(function () {
         Route::put('/{user}', [ManajemenUserController::class, 'update'])->name('update');
         Route::delete('/{user}', [ManajemenUserController::class, 'destroy'])->name('destroy');
     });
+
+    // Route untuk mencetak daftar laporan (dengan filter)
+    Route::get('/reports/print-list', [ReportController::class, 'printList'])->name('reports.print.list');
 });
 
 // Owner-only routes
 Route::middleware(['auth', 'role:owner'])->group(function () {
-    Route::resource('reports', ReportController::class)->except(['generate']);
-    // Route::post('reports/generate', [ReportController::class, 'generate'])->name('reports.generate');
+    Route::resource('reports', ReportController::class);
 });
 
 // Route::middleware(['auth', 'role:admin'])->group(function () {

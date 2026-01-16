@@ -17,10 +17,12 @@
                     <i class="fas fa-plus mr-3 text-lg"></i>
                     Buat Laporan Baru
                 </a>
-                <button class="bg-white text-blue-600 hover:bg-blue-50 font-semibold py-3 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center group" onclick="window.print()">
+                <a href="{{ route('reports.print.list', request()->query()) }}"
+                class="bg-white text-blue-600 hover:bg-blue-50 font-semibold py-3 px-6 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center group"
+                target="_blank">
                     <i class="fas fa-print mr-3 text-lg"></i>
-                    Print
-                </button>
+                    Print PDF
+                </a>
             </div>
         </div>
     </div>
@@ -179,17 +181,19 @@
                                 <a href="{{ route('reports.show', $report) }}" class="text-blue-600 hover:text-blue-900 transition-colors duration-200 p-1 rounded hover:bg-blue-50" title="Lihat Detail">
                                     <i class="fas fa-eye text-sm"></i>
                                 </a>
-                                @if($report->user_id == Auth::id())
-                                <a href="{{ route('reports.edit', $report) }}" class="text-green-600 hover:text-green-900 transition-colors duration-200 p-1 rounded hover:bg-green-50" title="Edit">
+                                @if($report->user_id == Auth::id() && $report->status != 'published' && $report->status != 'archived')
+                                    <a href="{{ route('reports.edit', $report) }}" class="text-green-600 hover:text-green-900 transition-colors duration-200 p-1 rounded hover:bg-green-50" title="Edit">
                                     <i class="fas fa-edit text-sm"></i>
-                                </a>
-                                <form action="{{ route('reports.destroy', $report) }}" method="POST" class="inline">
+                                    </a>
+                                @endif
+                                @if($report->user_id == Auth::id())
+                                    <form action="{{ route('reports.destroy', $report) }}" method="POST" class="inline">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="text-red-600 hover:text-red-900 transition-colors duration-200 p-1 rounded hover:bg-red-50" title="Hapus" onclick="return confirm('Apakah Anda yakin ingin menghapus laporan ini?')">
                                         <i class="fas fa-trash text-sm"></i>
                                     </button>
-                                </form>
+                                    </form>
                                 @endif
                             </div>
                         </td>
@@ -220,25 +224,4 @@
         @endif
     </div>
 </div>
-
-<style>
-    @media print {
-        .bg-gradient-to-r {
-            background: #2563eb !important;
-            color: white !important;
-        }
-        .shadow-lg, .shadow-xl {
-            box-shadow: none !important;
-        }
-        button, .flex.space-x-3, .flex.justify-end {
-            display: none !important;
-        }
-        nav {
-            display: none !important;
-        }
-        .hover\:bg-gray-50:hover {
-            background-color: transparent !important;
-        }
-    }
-</style>
 @endsection

@@ -6,6 +6,7 @@ namespace App\Http\Controllers;
 use App\Models\Report;
 use App\Models\Bahan;
 use Illuminate\Http\Request;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Auth;
 
 class ReportController extends Controller
@@ -179,5 +180,36 @@ class ReportController extends Controller
 
         return redirect()->route('reports.index')
             ->with('success', 'Laporan berhasil dihapus.');
+    }
+
+    public function printList(Request $request)
+    {
+        // Gunakan filter yang sama seperti di index
+        $query = Report::with(['user', 'bahan'])
+            ->when($request->tanggal_mulai, function($query) use ($request) {
+                return $query->where('tanggal_mulai', '>=', $request->tanggal_mulai);
+            })
+            ->when($request->tanggal_akhir, function($query) use ($request) {
+                return $query->where('tanggal_akhir', '<=', $request->tanggal_akhir);
+            })
+            ->when($request->jenis_transaksi && $request->jenis_transaksi != 'semua', function($query) use ($request) {
+                return $query->where('jenis_transaksi', $request->jenis_transaksi);
+            })
+            ->when($request->bahan_id, function($query) use ($request) {
+                return $query->where('bahan_id', $request->bahan_id);
+            })
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $data = [
+            'reports' => $query,
+            'filterParams' => $request->only(['tanggal_mulai', 'tanggal_akhir', 'jenis_transaksi', 'bahan_id']),
+            'user' => auth()->user(),
+        ];
+
+        $filename = 'Daftar_Laporan_' . now()->format('Ymd_His') . '.pdf';
+
+        $pdf = Pdf::loadView('owner.laporan.print-list', $data);
+        return $pdf->stream($filename);
     }
 }
