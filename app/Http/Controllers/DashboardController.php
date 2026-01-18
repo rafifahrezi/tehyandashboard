@@ -8,6 +8,45 @@ use Illuminate\Http\Request;
 
 class DashboardController extends Controller
 {
+    private function getLast7DaysChartData()
+    {
+        $dates = [];
+        for ($i = 6; $i >= 0; $i--) {
+            $dates[] = now()->subDays($i)->format('Y-m-d');
+        }
+
+        $stockInData = StockMove::selectRaw('DATE(created_at) as date, SUM(qty) as total')
+            ->where('move_type', 'in')
+            ->whereDate('created_at', '>=', now()->subDays(6))
+            ->groupBy('date')
+            ->orderBy('date')
+            ->pluck('total', 'date')
+            ->toArray();
+
+        $stockOutData = StockMove::selectRaw('DATE(created_at) as date, SUM(qty) as total')
+            ->where('move_type', 'out')
+            ->whereDate('created_at', '>=', now()->subDays(6))
+            ->groupBy('date')
+            ->orderBy('date')
+            ->pluck('total', 'date')
+            ->toArray();
+
+        $chartData = [];
+        foreach ($dates as $date) {
+            $stockIn = $stockInData[$date] ?? 0;
+            $stockOut = $stockOutData[$date] ?? 0;
+
+            $chartData[] = [
+                'date' => $date,
+                'stock_in' => (int)$stockIn,
+                'stock_out' => (int)$stockOut,
+                'count' => (int)$stockIn + (int)$stockOut,
+            ];
+        }
+
+        return $chartData;
+    }
+
     /**
      * Display a listing of the resource.
      */
@@ -19,8 +58,8 @@ class DashboardController extends Controller
         ];
 
         /* ============================
-         * LOW STOCK (WARNING + KRITIS)
-         * ============================ */
+        * LOW STOCK (WARNING + KRITIS)
+        * ============================ */
         $lowStockSummary = Bahan::selectRaw('status, COUNT(*) as total')
             ->whereIn('status', ['warning', 'kritis'])
             ->groupBy('status')
@@ -39,12 +78,10 @@ class DashboardController extends Controller
         $todayOut = StockMove::where('move_type', 'out')
             ->whereBetween('created_at', $todayRange);
 
-        /**
-         * =========================
-         * INFORMASI STOK
-         * =========================
-         */
-
+        /* =========================
+        * INFORMASI STOK
+        * =========================
+        */
         $stockSummary = Bahan::selectRaw('status, COUNT(*) as total')
             ->groupBy('status')
             ->pluck('total', 'status');
@@ -83,8 +120,8 @@ class DashboardController extends Controller
         ];
 
         /* ===============================
-         * RECENT TRANSACTIONS
-         * =============================== */
+        * RECENT TRANSACTIONS
+        * =============================== */
         $recentActivity = StockMove::with('bahan')
             ->latest()
             ->limit(5)
@@ -100,21 +137,30 @@ class DashboardController extends Controller
                 ];
             });
 
-        // Sample data 
+        /* ===============================
+        * CHART DATA - 7 HARI TERAKHIR
+        * =============================== */
+        $chartData7Days = $this->getLast7DaysChartData();
+
+        // Format untuk chart 7 hari terakhir
+        $last7DaysFormatted = [];
+        foreach ($chartData7Days as $data) {
+            $date = \Carbon\Carbon::parse($data['date'])->translatedFormat('d M');
+            $last7DaysFormatted[] = [
+                'date' => $date,
+                'stock_in' => $data['stock_in'],
+                'stock_out' => $data['stock_out'],
+                'count' => $data['stock_in'] + $data['stock_out'],
+            ];
+        }
+
+        // Dashboard data dengan data real
         $dashboardData = [
             'user' => [
-                'name' => 'rafffahrezid'
+                'name' => auth()->user()->name
             ],
             'transactions' => [
-                'last7Days' => [
-                    ['date' => '12 Okt', 'count' => 5],
-                    ['date' => '13 Okt', 'count' => 3],
-                    ['date' => '14 Okt', 'count' => 7],
-                    ['date' => '15 Okt', 'count' => 6],
-                    ['date' => '16 Okt', 'count' => 4],
-                    ['date' => '17 Okt', 'count' => 2],
-                    ['date' => '18 Okt', 'count' => 8],
-                ],
+                'last7Days' => $last7DaysFormatted,
                 'todayIn' => [
                     'count'        => $todayIn->sum('qty'),
                     'transactions' => $todayIn->count(),
@@ -126,12 +172,16 @@ class DashboardController extends Controller
             ],
             'stock' => $stockInfo,
             'recentActivity' => $recentActivity,
+            'chartData' => [
+                'labels_7days' => array_column($last7DaysFormatted, 'date'),
+                'stock_in_7days' => array_column($last7DaysFormatted, 'stock_in'),
+                'stock_out_7days' => array_column($last7DaysFormatted, 'stock_out'),
+            ],
         ];
 
         // Define the minimum stock threshold
-        $minimumStockThreshold = 5; 
+        $minimumStockThreshold = 5;
         $lowStockCount = Bahan::where('stok_sekarang', '<=', $minimumStockThreshold)->count();
-
 
         return view('admin.dashboard.index', compact(
             'dashboardData',
@@ -150,45 +200,5 @@ class DashboardController extends Controller
         return view('dashboard.index', [
             'title' => 'Dashboard'
         ]);
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
     }
 }

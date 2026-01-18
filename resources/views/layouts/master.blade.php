@@ -129,6 +129,7 @@
     </script>
     {{-- Additional Body Scripts --}}
     @stack('body-scripts')
+    @stack('chart-scripts')
 </body>
 
 </html>

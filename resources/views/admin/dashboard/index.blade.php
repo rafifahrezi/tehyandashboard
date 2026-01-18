@@ -84,17 +84,28 @@
             <div class="lg:col-span-2 space-y-6">
                 <!-- Grafik Transaksi -->
                 <div class="bg-white rounded-lg shadow-sm p-6">
-                    <h2 class="text-lg font-semibold text-gray-900 mb-4">Grafik Transaksi</h2>
-                    <p class="text-sm text-gray-600 mb-4">7 hari terakhir</p>
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h2 class="text-lg font-semibold text-gray-900">Grafik Transaksi</h2>
+                            <p class="text-sm text-gray-600">7 hari terakhir</p>
+                        </div>
+                    </div>
 
-                    <!-- Simple Bar Chart -->
-                    <div class="h-64 flex items-end justify-between space-x-2 pt-4">
-                        @foreach ($dashboardData['transactions']['last7Days'] as $day)
-                            <div class="flex flex-col items-center flex-1">
-                                <div class="bg-blue-500 rounded-t w-full" style="height: {{ $day['count'] * 20 }}px;"></div>
-                                <span class="text-xs text-gray-600 mt-2">{{ $day['date'] }}</span>
-                            </div>
-                        @endforeach
+                    <!-- Chart Container -->
+                    <div class="h-64">
+                        <canvas id="transactionChart"></canvas>
+                    </div>
+
+                    <!-- Chart Legend -->
+                    <div class="flex justify-center space-x-6 mt-4 text-sm">
+                        <div class="flex items-center">
+                            <div class="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+                            <span class="text-gray-600">Stok Masuk</span>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
+                            <span class="text-gray-600">Stok Keluar</span>
+                        </div>
                     </div>
                 </div>
 
@@ -150,3 +161,179 @@
         </div>
     </div>
 @endsection
+@push('chart-scripts')
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Data dari PHP - menggunakan data real dari controller
+            const last7Days = @json($dashboardData['transactions']['last7Days'] ?? []);
+
+            // Ekstrak data untuk chart
+            const labels = last7Days.map(day => day.date);
+            const stockInData = last7Days.map(day => day.stock_in || 0);
+            const stockOutData = last7Days.map(day => day.stock_out || 0);
+
+            // Chart configuration untuk bar chart
+            const chartData = {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Stok Masuk',
+                        data: stockInData,
+                        backgroundColor: 'rgba(34, 197, 94, 0.8)',
+                        borderColor: 'rgb(34, 197, 94)',
+                        borderWidth: 1,
+                        borderRadius: 6,
+                        borderSkipped: false,
+                        barPercentage: 0.7,
+                        categoryPercentage: 0.8,
+                    },
+                    {
+                        label: 'Stok Keluar',
+                        data: stockOutData,
+                        backgroundColor: 'rgba(239, 68, 68, 0.8)',
+                        borderColor: 'rgb(239, 68, 68)',
+                        borderWidth: 1,
+                        borderRadius: 6,
+                        borderSkipped: false,
+                        barPercentage: 0.7,
+                        categoryPercentage: 0.8,
+                    }
+                ]
+            };
+
+            const chartOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        backgroundColor: 'rgba(0, 0, 0, 0.85)',
+                        titleFont: {
+                            size: 12,
+                            family: "'Inter', sans-serif",
+                            weight: '600'
+                        },
+                        bodyFont: {
+                            size: 12,
+                            family: "'Inter', sans-serif"
+                        },
+                        padding: 12,
+                        cornerRadius: 6,
+                        boxPadding: 6,
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                const value = context.parsed.y;
+                                label += value + ' unit';
+                                return label;
+                            },
+                            title: function(context) {
+                                return context[0].label;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            display: false,
+                            drawBorder: false
+                        },
+                        ticks: {
+                            font: {
+                                size: 11,
+                                family: "'Inter', sans-serif"
+                            },
+                            color: '#6b7280',
+                            maxRotation: 0
+                        },
+                        // Caption untuk sumbu X
+                        title: {
+                            display: true,
+                            text: 'Tanggal (7 Hari Terakhir)',
+                            color: '#4b5563',
+                            font: {
+                                size: 12,
+                                family: "'Inter', sans-serif",
+                                weight: '600'
+                            },
+                            padding: {
+                                top: 10,
+                                bottom: 0
+                            }
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)',
+                            drawBorder: false,
+                            drawTicks: false
+                        },
+                        ticks: {
+                            font: {
+                                size: 11,
+                                family: "'Inter', sans-serif"
+                            },
+                            color: '#6b7280',
+                            callback: function(value) {
+                                return value;
+                            },
+                            padding: 8
+                        },
+                        // Caption untuk sumbu Y
+                        title: {
+                            display: true,
+                            text: 'Jumlah Unit',
+                            color: '#4b5563',
+                            font: {
+                                size: 12,
+                                family: "'Inter', sans-serif",
+                                weight: '600'
+                            },
+                            padding: {
+                                top: 0,
+                                bottom: 10
+                            }
+                        }
+                    }
+                },
+                interaction: {
+                    intersect: false,
+                    mode: 'index'
+                },
+                animation: {
+                    duration: 1000,
+                    easing: 'easeOutQuart'
+                },
+                hover: {
+                    mode: 'index',
+                    intersect: false
+                }
+            };
+
+            // Get canvas context
+            const ctx = document.getElementById('transactionChart');
+            if (!ctx) {
+                console.error('Canvas element not found!');
+                return;
+            }
+
+            // Create bar chart
+            const transactionChart = new Chart(ctx, {
+                type: 'bar',
+                data: chartData,
+                options: chartOptions
+            });
+        });
+    </script>
+@endpush
