@@ -11,8 +11,8 @@
                             d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/>
                     </svg>
                 </div>
-                <h1 class="text-3xl font-bold text-white mb-2">ZIS</h1>
-                <p class="text-emerald-100">Zakat & Infaq System</p>
+                <h1 class="text-3xl font-bold text-white mb-2">Laravel</h1>
+                <p class="text-emerald-100">Inventory Kedai Tehyan</p>
             </div>
 
             {{-- Card --}}

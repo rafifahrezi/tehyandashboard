@@ -1,6 +1,6 @@
 <x-guest-layout>
     <div
-        class="min-h-screen bg-gradient-to-br from-emerald-600 via-emerald-500 to-emerald-700 
+        class="min-h-screen bg-gradient-to-br from-emerald-600 via-emerald-500 to-emerald-700
                 flex items-center justify-center p-6">
         <div class="flex flex-col items-center">
             {{-- Header --}}
@@ -127,27 +127,7 @@
                     </div>
                 </form>
 
-                {{-- Register Link --}}
-                @if (Route::has('register'))
-                    <div class="mt-6 text-center">
-                        <p class="text-sm text-gray-600">
-                            {{ __('Belum punya akun?') }}
-                            <a href="{{ route('register') }}"
-                                class="text-emerald-600 font-semibold hover:text-emerald-700">
-                                {{ __('Daftar') }}
-                            </a>
-                        </p>
-                        <form id="logoutForm" method="POST" action="{{ route('logout') }}" class="hidden">
-                            @csrf
-                        </form>
-                        <a href="#"
-                            onclick="event.preventDefault(); document.getElementById('logoutForm').submit();"
-                            class="block w-full py-2 mt-2 text-center text-sm font-medium text-emerald-600 bg-white hover:bg-emerald-50 rounded-lg border border-emerald-300 hover:border-emerald-400 transition-all duration-200">
-                            <i class="fas fa-sign-out-alt w-4 h-4"></i>
-                            <span class="font-medium">Refresh data Login</span>
-                        </a>
-                    </div>
-                @endif
+
             </div>
 
             {{-- Footer --}}
